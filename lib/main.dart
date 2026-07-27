@@ -6,14 +6,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    debugPrint(details.exceptionAsString());
+    FlutterError.dumpErrorToConsole(details);
   };
 
-  runZonedGuarded(() {
+  await runZonedGuarded<Future<void>>(() async {
     runApp(const FoxNetworkApp());
   }, (Object error, StackTrace stackTrace) {
-    debugPrint('FATAL: $error');
+    debugPrint('Uncaught startup error: $error');
     debugPrintStack(stackTrace: stackTrace);
   });
 }

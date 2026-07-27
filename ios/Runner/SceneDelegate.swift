@@ -1,6 +1,1 @@
-import Flutter
-import UIKit
-
-class SceneDelegate: FlutterSceneDelegate {
-
-}
+// Intentionally unused. FoxNetwork uses the stable legacy Flutter app lifecycle.
