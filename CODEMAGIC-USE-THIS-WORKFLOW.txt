@@ -1,0 +1,12 @@
+FOXNETWORK TESTFLIGHT BUILD
+
+Use the YAML workflow named:
+  FoxNetwork TestFlight RELEASE
+
+Do NOT use the Codemagic Workflow Editor build that runs:
+  flutter build ipa --debug
+
+A TestFlight/App Store build must run:
+  flutter build ipa --release
+
+This project also disables Flutter Swift Package Manager for now, so the iOS plugins use only CocoaPods. The workflow removes the old Pods integration, runs pod install again, verifies Podfile.lock equals Pods/Manifest.lock, and then creates build 1.0.5 (8).

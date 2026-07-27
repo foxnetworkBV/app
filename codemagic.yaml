@@ -1,7 +1,7 @@
 workflows:
   ios-testflight:
-    name: FoxNetwork TestFlight
-    max_build_duration: 60
+    name: FoxNetwork TestFlight RELEASE
+    max_build_duration: 120
     integrations:
       app_store_connect: FoxNetwork App Store Connect
     environment:
@@ -12,30 +12,58 @@ workflows:
         distribution_type: app_store
         bundle_identifier: be.foxnetwork.app
     scripts:
-      - name: Clean generated files
+      - name: Verify release workflow
         script: |
+          set -e
+          echo "Building TestFlight RELEASE — never debug"
+          flutter --version
+          flutter config --no-enable-swift-package-manager
+
+      - name: Clean Flutter and iOS completely
+        script: |
+          set -e
           flutter clean
-          rm -rf ios/Pods ios/Podfile.lock
+          rm -rf .dart_tool build
+          rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          rm -rf ~/Library/Caches/CocoaPods
+
       - name: Get Flutter packages
-        script: flutter pub get
-      - name: Install CocoaPods
         script: |
+          set -e
+          flutter pub get
+
+      - name: Recreate CocoaPods integration
+        script: |
+          set -e
           cd ios
-          pod repo update
-          pod install
-      - name: Set up code signing
-        script: xcode-project use-profiles
-      - name: Build TestFlight IPA
+          pod deintegrate || true
+          rm -rf Pods Podfile.lock .symlinks
+          pod install --repo-update
+          test -f Podfile.lock
+          test -f Pods/Manifest.lock
+          cmp Podfile.lock Pods/Manifest.lock
+          cd ..
+
+      - name: Set up App Store signing
         script: |
+          set -e
+          xcode-project use-profiles
+          test -f /Users/builder/export_options.plist
+
+      - name: Build TestFlight IPA in release mode
+        script: |
+          set -e
           flutter build ipa --release \
             --build-name=1.0.5 \
-            --build-number=7 \
+            --build-number=8 \
             --export-options-plist=/Users/builder/export_options.plist
+
     artifacts:
       - build/ios/ipa/*.ipa
+      - build/ios/archive/Runner.xcarchive/dSYMs/*.dSYM
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
+
     publishing:
       app_store_connect:
         auth: integration
