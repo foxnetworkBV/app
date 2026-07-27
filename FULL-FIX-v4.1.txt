@@ -1,0 +1,14 @@
+FoxNetwork v4.1 fix
+- API URL: https://api.foxnetwork.be
+- INTERNET permission included
+- Services requests retry transient 5xx/network/timeouts three times
+- No demo fallback
+
+If the Android platform files are incomplete, run once:
+flutter create . --platforms=android
+Then verify AndroidManifest.xml still contains INTERNET permission.
+
+Build:
+flutter clean
+flutter pub get
+flutter build apk --release

@@ -1,0 +1,14 @@
+FoxNetwork Flutter Live Services Fix
+
+Changes:
+- API URL: http://192.168.2.108:9999
+- Stores the FoxNetwork bearer token returned by Paymenter OAuth
+- Sends Authorization: Bearer <token> to /api/services
+- Removes demo services from Services and Dashboard screens
+
+Build:
+flutter pub get
+flutter clean
+flutter build apk --release
+
+Before testing, uninstall the old app or clear its application data, then log in again with Paymenter.

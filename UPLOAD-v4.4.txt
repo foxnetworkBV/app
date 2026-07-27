@@ -1,0 +1,15 @@
+FOXNETWORK APP UPDATE v4.4
+
+1. Replace your Flutter project lib/ folder with the included lib/ folder.
+2. Replace pubspec.yaml.
+3. Run: flutter clean
+4. Run: flutter pub get
+5. Build Android: flutter build apk --release
+   or Play Store bundle: flutter build appbundle --release
+
+API base URL is configured in lib/config/api_config.dart.
+The backend must provide:
+- GET /api/services
+- GET /api/invoices
+- GET /api/services/{id}/resources
+- POST /api/services/{id}/power with JSON {"action":"start|restart|stop|kill"}

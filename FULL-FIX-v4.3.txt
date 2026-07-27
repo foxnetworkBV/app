@@ -1,0 +1,38 @@
+FOXNETWORK CUSTOMER APP + API v4.3
+=================================
+
+WHAT IS FIXED
+- Services load live from Paymenter.
+- Billing loads live invoices from Paymenter; demo invoices are no longer used.
+- Start, Stop, Restart and Kill call the real Pterodactyl Client API.
+- Live state, CPU, memory, disk, network and uptime are loaded from Pterodactyl.
+- Power endpoints verify that the Paymenter service belongs to the logged-in user.
+- Local SQLite service/invoice records are no longer used for these features.
+
+API UPLOAD
+1. Back up your current /home/container/www/.env and /home/container/www/storage/database.sqlite.
+2. Upload the contents of api/ over the server files.
+3. Keep your existing .env and database.sqlite.
+4. Add these values to .env:
+
+PTERODACTYL_URL=https://panel.foxnetwork.be
+PTERODACTYL_CLIENT_API_KEY=YOUR_CLIENT_API_KEY
+PAYMENTER_PTERODACTYL_MAP={"1":"PTERO_IDENTIFIER_FOR_SERVICE_1","4":"PTERO_IDENTIFIER_FOR_SERVICE_4"}
+
+Use the short Pterodactyl identifier from:
+https://panel.foxnetwork.be/server/IDENTIFIER
+
+The key must be a Pterodactyl CLIENT API key belonging to a user that has access to the mapped servers.
+Do not use an Application API key for /api/client power controls.
+
+5. Restart the API server/container.
+6. Check https://api.foxnetwork.be/api/health and confirm version paymenter-pterodactyl-live-4.3.
+
+FLUTTER
+The flutter/ directory contains the updated Flutter source. Run:
+flutter pub get
+flutter build apk --release
+
+SECURITY
+Do not upload a real .env or database.sqlite from this package. They are intentionally excluded.
+Rotate API tokens that were previously posted in chat.

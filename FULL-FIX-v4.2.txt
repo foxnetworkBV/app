@@ -1,0 +1,18 @@
+FoxNetwork Flutter App v4.2
+
+Fixes:
+- Paymenter status polling no longer overlaps requests.
+- Each status check uses a fresh HTTP client and closes the connection.
+- Socket aborts, timeouts, temporary Cloudflare 5xx responses, and malformed transient responses are retried silently.
+- Polling runs every 3 seconds for up to 5 minutes.
+- API URL remains https://api.foxnetwork.be.
+- Android INTERNET permission is included.
+
+Build:
+  flutter create . --platforms=android
+  flutter clean
+  flutter pub get
+  flutter build apk --release
+
+APK:
+  build/app/outputs/flutter-apk/app-release.apk
