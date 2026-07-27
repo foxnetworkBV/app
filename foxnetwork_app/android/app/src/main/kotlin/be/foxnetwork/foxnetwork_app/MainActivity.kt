@@ -1,0 +1,5 @@
+package be.foxnetwork.foxnetwork_app
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
