@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Foxnetwork App</string>
+	<string>FoxNetwork</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -47,5 +47,20 @@
 	<false/>
 	<key>MinimumOSVersion</key>
 	<string>15.0</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>be.foxnetwork.app.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>foxnetwork</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
