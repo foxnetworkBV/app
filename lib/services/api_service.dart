@@ -186,6 +186,42 @@ class ApiService {
         .toList();
   }
 
+
+  static Future<List<SupportTicket>> getTickets(String token) async {
+    final response = await http
+        .get(_uri('api/tickets'), headers: _headers(token))
+        .timeout(const Duration(seconds: 30));
+    _ensureSuccess(response);
+    final decoded = jsonDecode(response.body);
+    final data = decoded is List<dynamic>
+        ? decoded
+        : (decoded is Map<String, dynamic> && decoded['data'] is List<dynamic>
+            ? decoded['data'] as List<dynamic>
+            : <dynamic>[]);
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(SupportTicket.fromJson)
+        .toList();
+  }
+
+  static Future<SupportTicket> createTicket(
+    String token, {
+    required String subject,
+    required String message,
+  }) async {
+    final response = await http
+        .post(
+          _uri('api/tickets'),
+          headers: _headers(token),
+          body: jsonEncode({'subject': subject, 'message': message}),
+        )
+        .timeout(const Duration(seconds: 30));
+    _ensureSuccess(response);
+    return SupportTicket.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   static Future<ServerResources> getServerResources(
     String token,
     int serviceId,

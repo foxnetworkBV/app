@@ -27,7 +27,7 @@ class _MainShellState extends State<MainShell> {
       DashboardScreen(session: widget.session),
       ServicesScreen(session: widget.session),
       BillingScreen(session: widget.session),
-      const SupportScreen(),
+      SupportScreen(session: widget.session),
       AccountScreen(session: widget.session),
     ];
 

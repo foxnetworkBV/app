@@ -1,0 +1,10 @@
+Version 1.0.7+14
+
+App fixes:
+- Billing now handles live Paymenter invoice JSON safely.
+- Support no longer uses demo tickets.
+- Support loads GET /api/tickets.
+- New tickets are sent to POST /api/tickets.
+- Refresh, loading, empty and error states added.
+
+API files to upload are in api-server-fix/.

@@ -86,6 +86,30 @@ class SessionService extends ChangeNotifier {
     return ApiService.getInvoices(currentToken);
   }
 
+
+  Future<List<SupportTicket>> getTickets() async {
+    final currentToken = _token;
+    if (currentToken == null || currentToken.isEmpty) {
+      throw Exception('You are not signed in.');
+    }
+    return ApiService.getTickets(currentToken);
+  }
+
+  Future<SupportTicket> createTicket({
+    required String subject,
+    required String message,
+  }) async {
+    final currentToken = _token;
+    if (currentToken == null || currentToken.isEmpty) {
+      throw Exception('You are not signed in.');
+    }
+    return ApiService.createTicket(
+      currentToken,
+      subject: subject,
+      message: message,
+    );
+  }
+
   Future<void> sendPowerAction(int serviceId, String action) async {
     final currentToken = _token;
     if (currentToken == null || currentToken.isEmpty) {

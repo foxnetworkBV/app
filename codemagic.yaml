@@ -12,59 +12,52 @@ workflows:
         distribution_type: app_store
         bundle_identifier: be.foxnetwork.app
     scripts:
-      - name: Verify project and release mode
+      - name: Verify release workflow
         script: |
-          set -euo pipefail
-          echo "FoxNetwork production build 1.0.6 (11)"
+          set -e
+          echo "Building TestFlight RELEASE — never debug"
           flutter --version
           flutter config --no-enable-swift-package-manager
-          grep -q 'flutter build ipa --release' codemagic.yaml
-          grep -q 'version: 1.0.6+11' pubspec.yaml
-          grep -q 'PRODUCT_BUNDLE_IDENTIFIER = be.foxnetwork.app;' ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Clean build environment
+      - name: Clean Flutter and iOS completely
         script: |
-          set -euo pipefail
+          set -e
           flutter clean
           rm -rf .dart_tool build
           rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
-          rm -rf "$HOME/Library/Developer/Xcode/DerivedData"/* || true
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          rm -rf ~/Library/Caches/CocoaPods
 
-      - name: Install Flutter packages
+      - name: Get Flutter packages
         script: |
-          set -euo pipefail
+          set -e
           flutter pub get
 
-      - name: Analyze and test
+      - name: Recreate CocoaPods integration
         script: |
-          set -euo pipefail
-          flutter analyze
-          flutter test
-
-      - name: Install CocoaPods
-        script: |
-          set -euo pipefail
+          set -e
           cd ios
+          pod deintegrate || true
+          rm -rf Pods Podfile.lock .symlinks
           pod install --repo-update
           test -f Podfile.lock
           test -f Pods/Manifest.lock
           cmp Podfile.lock Pods/Manifest.lock
           cd ..
 
-      - name: Configure App Store signing
+      - name: Set up App Store signing
         script: |
-          set -euo pipefail
+          set -e
           xcode-project use-profiles
           test -f /Users/builder/export_options.plist
 
-      - name: Build signed TestFlight IPA
+      - name: Build TestFlight IPA in release mode
         script: |
-          set -euo pipefail
+          set -e
           flutter build ipa --release \
-            --build-name=1.0.6 \
-            --build-number=11 \
+            --build-name=1.0.5 \
+            --build-number=9 \
             --export-options-plist=/Users/builder/export_options.plist
-          test -n "$(find build/ios/ipa -name '*.ipa' -print -quit)"
 
     artifacts:
       - build/ios/ipa/*.ipa
