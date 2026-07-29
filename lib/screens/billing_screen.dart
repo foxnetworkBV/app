@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
+import 'invoice_detail_screen.dart';
 
 class BillingScreen extends StatefulWidget {
   final SessionService session;
@@ -96,7 +97,10 @@ class _BillingScreenState extends State<BillingScreen> {
                 final invoice = invoices[index];
                 final paid = invoice.status.toLowerCase() == 'paid';
                 return Card(
-                  child: Padding(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => InvoiceDetailScreen(invoice: invoice, session: widget.session))),
+                    child: Padding(
                     padding: const EdgeInsets.all(18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,6 +135,7 @@ class _BillingScreenState extends State<BillingScreen> {
                         ],
                       ],
                     ),
+                  ),
                   ),
                 );
               },

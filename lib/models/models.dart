@@ -210,3 +210,22 @@ class ServerResources {
     );
   }
 }
+
+
+class InvoiceItem {
+  final int id; final String description; final double quantity; final double price; final double total; final String currency;
+  const InvoiceItem({required this.id,required this.description,required this.quantity,required this.price,required this.total,required this.currency});
+  factory InvoiceItem.fromJson(Map<String,dynamic> j)=>InvoiceItem(
+    id:int.tryParse('${j['id']??0}')??0, description:'${j['description']??'Item'}',
+    quantity:double.tryParse('${j['quantity']??1}')??1, price:double.tryParse('${j['price']??0}')??0,
+    total:double.tryParse('${j['total']??0}')??0, currency:'${j['currency']??'EUR'}');
+}
+class InvoiceDetail {
+  final int id; final String number,status,currency,issuedAt,dueAt,updatedAt,pdfUrl,webUrl; final double total; final List<InvoiceItem> items;
+  const InvoiceDetail({required this.id,required this.number,required this.status,required this.currency,required this.issuedAt,required this.dueAt,required this.updatedAt,required this.pdfUrl,required this.webUrl,required this.total,required this.items});
+  factory InvoiceDetail.fromJson(Map<String,dynamic> j)=>InvoiceDetail(
+    id:int.tryParse('${j['id']??0}')??0, number:'${j['number']??j['invoice_number']??'Invoice'}', status:'${j['status']??'Unknown'}',
+    currency:'${j['currency']??j['currency_code']??'EUR'}', issuedAt:'${j['issued_at']??''}', dueAt:'${j['due_at']??''}', updatedAt:'${j['updated_at']??''}',
+    pdfUrl:'${j['pdf_url']??''}', webUrl:'${j['web_url']??''}', total:double.tryParse('${j['total']??j['amount']??0}')??0,
+    items:(j['items'] is List ? (j['items'] as List).whereType<Map<String,dynamic>>().map(InvoiceItem.fromJson).toList():<InvoiceItem>[]));
+}

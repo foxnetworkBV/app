@@ -87,6 +87,12 @@ class SessionService extends ChangeNotifier {
   }
 
 
+  Future<InvoiceDetail> getInvoice(int invoiceId) async {
+    final currentToken = token;
+    if (currentToken == null) throw Exception('Not signed in');
+    return ApiService.getInvoice(currentToken, invoiceId);
+  }
+
   Future<List<SupportTicket>> getTickets() async {
     final currentToken = _token;
     if (currentToken == null || currentToken.isEmpty) {

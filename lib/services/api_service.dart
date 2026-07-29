@@ -187,6 +187,12 @@ class ApiService {
   }
 
 
+  static Future<InvoiceDetail> getInvoice(String token, int invoiceId) async {
+    final response = await http.get(_uri('api/invoices/$invoiceId'), headers: _headers(token)).timeout(const Duration(seconds: 30));
+    _ensureSuccess(response);
+    return InvoiceDetail.fromJson(jsonDecode(response.body) as Map<String,dynamic>);
+  }
+
   static Future<List<SupportTicket>> getTickets(String token) async {
     final response = await http
         .get(_uri('api/tickets'), headers: _headers(token))
