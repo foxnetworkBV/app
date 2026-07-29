@@ -3,6 +3,8 @@ import '../models/models.dart';
 import '../services/session_service.dart';
 import '../widgets/service_card.dart';
 import '../widgets/stat_card.dart';
+import '../widgets/foxnetwork_logo.dart';
+import '../theme/app_theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   final SessionService session;
@@ -28,7 +30,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FoxNetwork')),
+      appBar: AppBar(
+        title: const FoxNetworkLogo(size: 30, showWordmark: true, compact: true),
+      ),
       body: FutureBuilder<List<CustomerService>>(
         future: _services,
         builder: (context, snapshot) {
@@ -36,12 +40,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return ListView(
             padding: const EdgeInsets.all(18),
             children: [
-              Text('Welcome back,', style: Theme.of(context).textTheme.bodyLarge),
-              Text(
-                widget.session.user?.name ?? 'Customer',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  gradient: FoxColors.brandGradient,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: FoxColors.cyan.withOpacity(0.16),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
                     ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 58,
+                      height: 58,
+                      padding: const EdgeInsets.all(11),
+                      decoration: BoxDecoration(
+                        color: FoxColors.navy950.withOpacity(0.88),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: const FoxNetworkLogo(size: 38),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Welcome back,',
+                            style: TextStyle(color: FoxColors.navy950),
+                          ),
+                          Text(
+                            widget.session.user?.name ?? 'Customer',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: FoxColors.navy950,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               Row(

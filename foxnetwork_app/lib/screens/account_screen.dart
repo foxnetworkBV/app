@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/session_service.dart';
+import '../widgets/foxnetwork_logo.dart';
+import '../theme/app_theme.dart';
 
 class AccountScreen extends StatelessWidget {
   final SessionService session;
@@ -12,7 +14,9 @@ class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
+      appBar: AppBar(
+        title: const FoxNetworkLogo(size: 28, showWordmark: true, compact: true),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
@@ -21,9 +25,15 @@ class AccountScreen extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    child: Icon(Icons.person, size: 34),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      gradient: FoxColors.brandGradient,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const FoxNetworkLogo(size: 38),
                   ),
                   const SizedBox(width: 14),
                   Column(

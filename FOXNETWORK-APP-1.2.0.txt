@@ -1,0 +1,30 @@
+FoxNetwork App 1.2.0 (Build 24)
+
+Redesigned using the real FoxNetwork website branding:
+- Primary orange: #EA5411
+- Dark navy: #0F1A30
+- Text: #3F3D59
+- Secondary text: #526489
+- Link blue: #1886EB
+- Background: #F7F6F8
+
+Highlights:
+- Completely redesigned login screen
+- Real website logo asset
+- Premium orange dashboard header
+- Operational status card
+- Redesigned service and statistic cards
+- Updated Material 3 navigation and controls
+- Existing API, invoices, tickets and server controls preserved
+
+Build:
+flutter clean
+flutter pub get
+flutter build apk --release
+
+For iOS:
+flutter clean
+rm -rf ios/Flutter/ephemeral ios/Pods ios/Podfile.lock .dart_tool build
+flutter pub get
+cd ios && pod install --repo-update && cd ..
+open ios/Runner.xcworkspace

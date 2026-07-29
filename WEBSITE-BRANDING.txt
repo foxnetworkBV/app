@@ -1,0 +1,12 @@
+FoxNetwork v1.1.0 build 23 — website-matched branding
+
+Palette taken from the supplied FoxNetwork website code:
+- Primary gradient: #667EEA → #764BA2
+- Hosting accent: #22A6FE
+- Page background: #F8F9FA
+- Cards: #FFFFFF
+- Heading: #333333
+- Body text: #666666
+- Footer/dark surface: #1A1A1A
+
+The previous cyan-only theme was removed. The FoxNetwork mark is used on login and dashboard.

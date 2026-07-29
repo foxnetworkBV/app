@@ -1,7 +1,7 @@
 name: foxnetwork_app
 description: FoxNetwork customer app for hosting, billing, and support.
 publish_to: "none"
-version: 1.1.0+21
+version: 1.2.0+24
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -23,3 +23,6 @@ flutter:
   config:
     enable-swift-package-manager: false
   uses-material-design: true
+  assets:
+    - assets/foxnetwork_mark.png
+    - assets/foxnetwork_logo.png

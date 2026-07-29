@@ -3,55 +3,22 @@ import '../models/models.dart';
 import '../services/session_service.dart';
 import '../widgets/service_card.dart';
 import '../widgets/stat_card.dart';
+import '../theme/app_theme.dart';
 
-class DashboardScreen extends StatefulWidget {
-  final SessionService session;
-  const DashboardScreen({super.key, required this.session});
-  @override State<DashboardScreen> createState() => _DashboardScreenState();
+class DashboardScreen extends StatefulWidget { final SessionService session; const DashboardScreen({super.key,required this.session}); @override State<DashboardScreen> createState()=>_DashboardScreenState(); }
+class _DashboardScreenState extends State<DashboardScreen>{
+ late Future<List<CustomerService>> _services; @override void initState(){super.initState();_services=widget.session.getServices();}
+ Future<void> _reload()async{final n=widget.session.getServices();setState(()=>_services=n);await n;}
+ @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Row(children:[Image.asset('assets/foxnetwork_mark.png',width:34,height:34),const SizedBox(width:10),const Text('FoxNetwork')]),actions:[IconButton(onPressed:_reload,icon:const Icon(Icons.refresh_rounded))]),body:FutureBuilder<List<CustomerService>>(future:_services,builder:(context,snapshot){
+  final services=snapshot.data??const<CustomerService>[];final active=services.where((s)=>['active','online','running'].contains(s.status.toLowerCase())).length;
+  return RefreshIndicator(onRefresh:_reload,color:FoxColors.orange,child:ListView(physics:const AlwaysScrollableScrollPhysics(),padding:const EdgeInsets.fromLTRB(18,8,18,28),children:[
+    Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:FoxColors.primaryGradient,borderRadius:BorderRadius.circular(24),boxShadow:const [BoxShadow(color:Color(0x38EA5411),blurRadius:24,offset:Offset(0,12))]),child:Stack(children:[Positioned(right:-24,top:-28,child:Icon(Icons.cloud_rounded,size:145,color:Colors.white.withValues(alpha:.08))),Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+      const Text('WELCOME BACK',style:TextStyle(color:Colors.white70,fontSize:11,fontWeight:FontWeight.w800,letterSpacing:1.5)),const SizedBox(height:8),Text(widget.session.user?.name??'Customer',style:const TextStyle(color:Colors.white,fontSize:28,fontWeight:FontWeight.w900,letterSpacing:-.5)),const SizedBox(height:8),const Text('Your FoxNetwork services at a glance.',style:TextStyle(color:Colors.white,height:1.4)),const SizedBox(height:20),Container(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.15),borderRadius:BorderRadius.circular(99)),child:const Row(mainAxisSize:MainAxisSize.min,children:[Icon(Icons.check_circle_rounded,color:Colors.white,size:17),SizedBox(width:7),Text('Systems operational',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w700,fontSize:12))]))
+    ])])),
+    const SizedBox(height:20),Row(children:[Expanded(child:StatCard(title:'Total services',value:snapshot.connectionState==ConnectionState.waiting?'…':'${services.length}',icon:Icons.dns_rounded)),const SizedBox(width:12),Expanded(child:StatCard(title:'Active now',value:snapshot.connectionState==ConnectionState.waiting?'…':'$active',icon:Icons.bolt_rounded))]),
+    const SizedBox(height:26),const Row(children:[Expanded(child:Text('Your services',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900,color:FoxColors.navy))),Text('VIEW ALL',style:TextStyle(fontSize:11,fontWeight:FontWeight.w800,color:FoxColors.orange,letterSpacing:1))]),const SizedBox(height:13),
+    if(snapshot.connectionState==ConnectionState.waiting)const Padding(padding:EdgeInsets.all(36),child:Center(child:CircularProgressIndicator())) else if(snapshot.hasError) _MessageCard(icon:Icons.cloud_off_rounded,text:snapshot.error.toString().replaceFirst('Exception: ',''),button:'Try again',onTap:_reload) else if(services.isEmpty) const _MessageCard(icon:Icons.dns_outlined,text:'No services found yet.') else ...services.take(3).map((s)=>Padding(padding:const EdgeInsets.only(bottom:12),child:ServiceCard(service:s))),
+    const SizedBox(height:12),Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:FoxColors.navy,borderRadius:BorderRadius.circular(20)),child:const Row(children:[Container(width:44,height:44,decoration:BoxDecoration(color:Color(0x22FFFFFF),shape:BoxShape.circle),child:Icon(Icons.support_agent_rounded,color:Colors.white)),SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Need a hand?',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800,fontSize:16)),SizedBox(height:3),Text('Our support team is ready to help.',style:TextStyle(color:Colors.white70,fontSize:12))])),Icon(Icons.arrow_forward_rounded,color:FoxColors.orange)]) )
+  ]));}));
 }
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  late Future<List<CustomerService>> _services;
-  @override void initState() { super.initState(); _services = widget.session.getServices(); }
-  Future<void> _reload() async { final next = widget.session.getServices(); setState(() => _services = next); await next; }
-
-  @override Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('FoxNetwork'), actions: [IconButton(onPressed: _reload, icon: const Icon(Icons.refresh_rounded), tooltip: 'Refresh')]),
-      body: FutureBuilder<List<CustomerService>>(
-        future: _services,
-        builder: (context, snapshot) {
-          final services = snapshot.data ?? const <CustomerService>[];
-          final active = services.where((s) => ['active', 'online'].contains(s.status.toLowerCase())).length;
-          return RefreshIndicator(
-            onRefresh: _reload,
-            child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.all(18), children: [
-              Text('Welcome back,', style: Theme.of(context).textTheme.bodyLarge),
-              Text(widget.session.user?.name ?? 'Customer', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              Text('Everything you need, in one place.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              const SizedBox(height: 22),
-              Row(children: [
-                Expanded(child: StatCard(title: 'Services', value: snapshot.connectionState == ConnectionState.waiting ? '…' : services.length.toString(), icon: Icons.dns_rounded)),
-                const SizedBox(width: 12),
-                Expanded(child: StatCard(title: 'Active', value: snapshot.connectionState == ConnectionState.waiting ? '…' : active.toString(), icon: Icons.check_circle_rounded)),
-              ]),
-              const SizedBox(height: 24),
-              Row(children: [Expanded(child: Text('Your services', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700))), if (services.length > 3) Text('${services.length} total')]),
-              const SizedBox(height: 12),
-              if (snapshot.connectionState == ConnectionState.waiting)
-                const Center(child: Padding(padding: EdgeInsets.all(28), child: CircularProgressIndicator()))
-              else if (snapshot.hasError)
-                Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(children: [const Icon(Icons.cloud_off_rounded, size: 42), const SizedBox(height: 10), Text(snapshot.error.toString().replaceFirst('Exception: ', ''), textAlign: TextAlign.center), const SizedBox(height: 12), FilledButton.icon(onPressed: _reload, icon: const Icon(Icons.refresh), label: const Text('Try again'))])))
-              else if (services.isEmpty)
-                const Card(child: Padding(padding: EdgeInsets.all(24), child: Column(children: [Icon(Icons.dns_outlined, size: 46), SizedBox(height: 10), Text('No services found.') ])))
-              else
-                ...services.take(3).map((service) => Padding(padding: const EdgeInsets.only(bottom: 12), child: ServiceCard(service: service))),
-              const SizedBox(height: 16),
-            ]),
-          );
-        },
-      ),
-    );
-  }
-}
+class _MessageCard extends StatelessWidget{final IconData icon;final String text;final String? button;final Future<void> Function()? onTap;const _MessageCard({required this.icon,required this.text,this.button,this.onTap});@override Widget build(BuildContext context)=>Card(child:Padding(padding:const EdgeInsets.all(25),child:Column(children:[Icon(icon,size:44,color:FoxColors.orange),const SizedBox(height:10),Text(text,textAlign:TextAlign.center),if(button!=null)...[const SizedBox(height:14),FilledButton(onPressed:onTap,child:Text(button!))]])));}

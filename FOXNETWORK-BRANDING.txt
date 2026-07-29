@@ -1,0 +1,16 @@
+FoxNetwork v1.1.0 Build 22 – FoxNetwork branding
+
+Changes:
+- FoxNetwork navy/cyan color palette throughout the Material 3 theme
+- FoxNetwork network-node logo on login, dashboard and account screens
+- New branded dashboard welcome card
+- New FoxNetwork app icon for iOS, Android and macOS
+- Updated buttons, cards, navigation, inputs, status colors and shadows
+
+Build from foxnetwork_app:
+flutter clean
+flutter pub get
+cd ios && pod install --repo-update && cd ..
+open ios/Runner.xcworkspace
+
+Expected version: 1.1.0 (22)

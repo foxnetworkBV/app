@@ -66,7 +66,7 @@ class AccountScreen extends StatelessWidget {
         const SizedBox(height: 18),
         OutlinedButton.icon(onPressed: session.logout, icon: const Icon(Icons.logout), label: const Text('Sign out')),
         const SizedBox(height: 8),
-        const Center(child: Text('FoxNetwork app • Version 1.1.0 (21)', style: TextStyle(fontSize: 12))),
+        const Center(child: Text('FoxNetwork app • Version 1.2.0 (24)', style: TextStyle(fontSize: 12))),
       ]),
     );
   }

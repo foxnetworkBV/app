@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/session_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/foxnetwork_logo.dart';
 
 class LoginScreen extends StatefulWidget {
   final SessionService session;
@@ -84,25 +86,47 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 1.15,
+            colors: [Color(0x242ED4F4), FoxColors.navy900],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.hub_rounded,
-                    size: 72,
-                    color: Color(0xFF26D9FF),
+                  Container(
+                    width: 118,
+                    height: 118,
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      color: FoxColors.navy800,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: FoxColors.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: FoxColors.cyan.withOpacity(0.16),
+                          blurRadius: 34,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const FoxNetworkLogo(size: 74),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 22),
                   const Text(
                     'FoxNetwork',
                     style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.2,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -156,6 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
