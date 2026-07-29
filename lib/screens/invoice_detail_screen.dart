@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
+import '../utils/formatters.dart';
 
 class InvoiceDetailScreen extends StatefulWidget {
   final Invoice invoice;
@@ -37,13 +38,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
     }
   }
 
-  String _date(String value) {
-    if (value.trim().isEmpty) return '—';
-    final parsed = DateTime.tryParse(value)?.toLocal();
-    if (parsed == null) return value;
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(parsed.day)}/${two(parsed.month)}/${parsed.year} ${two(parsed.hour)}:${two(parsed.minute)}';
-  }
 
   Widget _row(String label, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 7),
@@ -96,10 +90,10 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
               _row('Invoice number', invoice.number),
               _row('Status', invoice.status),
               _row('Total', '${invoice.currency} ${invoice.total.toStringAsFixed(2)}'),
-              _row('Issued At', _date(invoice.issuedAt)),
-              _row('Due At', _date(invoice.dueAt)),
-              _row('Paid At', _date(invoice.paidAt)),
-              _row('Updated At', _date(invoice.updatedAt)),
+              _row('Issued At', AppFormatters.dateTime(invoice.issuedAt)),
+              _row('Due At', AppFormatters.dateTime(invoice.dueAt)),
+              _row('Paid At', AppFormatters.dateTime(invoice.paidAt)),
+              _row('Updated At', AppFormatters.dateTime(invoice.updatedAt)),
             ]))),
             const SizedBox(height: 18),
             Text('Invoice items', style: Theme.of(context).textTheme.titleLarge),

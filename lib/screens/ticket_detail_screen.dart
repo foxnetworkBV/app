@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
+import '../utils/formatters.dart';
 
 class TicketDetailScreen extends StatefulWidget {
   final SupportTicket ticket;
@@ -35,13 +36,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
   }
 
-  String _date(String value) {
-    if (value.trim().isEmpty) return '—';
-    final parsed = DateTime.tryParse(value)?.toLocal();
-    if (parsed == null) return value;
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(parsed.day)}/${two(parsed.month)}/${parsed.year} ${two(parsed.hour)}:${two(parsed.minute)}';
-  }
 
   Widget _row(String label, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 7),
@@ -85,8 +79,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             const SizedBox(height: 16),
             Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
               _row('Ticket ID', '#${detail.id.abs()}'), _row('Subject', detail.subject), _row('Status', detail.status),
-              _row('Priority', detail.priority), _row('Department', detail.department), _row('Created At', _date(detail.createdAt)),
-              _row('Updated At', _date(detail.updatedAt)), if (detail.closedAt.isNotEmpty) _row('Closed At', _date(detail.closedAt)),
+              _row('Priority', detail.priority), _row('Department', detail.department), _row('Created At', AppFormatters.dateTime(detail.createdAt)),
+              _row('Updated At', AppFormatters.dateTime(detail.updatedAt)), if (detail.closedAt.isNotEmpty) _row('Closed At', AppFormatters.dateTime(detail.closedAt)),
             ]))),
             const SizedBox(height: 18),
             Text('Conversation', style: Theme.of(context).textTheme.titleLarge),
@@ -98,7 +92,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 alignment: message.isStaff ? Alignment.centerLeft : Alignment.centerRight,
                 child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 580), child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(message.author, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 8),
-                  SelectableText(message.message), if (message.createdAt.isNotEmpty) ...[const SizedBox(height: 10), Text(_date(message.createdAt), style: Theme.of(context).textTheme.bodySmall)],
+                  SelectableText(message.message), if (message.createdAt.isNotEmpty) ...[const SizedBox(height: 10), Text(AppFormatters.dateTime(message.createdAt), style: Theme.of(context).textTheme.bodySmall)],
                 ])))),
               ))),
             if (detail.webUrl.isNotEmpty) ...[

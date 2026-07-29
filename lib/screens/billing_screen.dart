@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
+import '../utils/formatters.dart';
 import 'invoice_detail_screen.dart';
 
 class BillingScreen extends StatefulWidget {
@@ -135,7 +136,7 @@ class _BillingScreenState extends State<BillingScreen> {
                         ),
                         if (invoice.issuedAt.isNotEmpty) ...[
                           const SizedBox(height: 6),
-                          Text('Issued At: ${_formatIssuedAt(invoice.issuedAt)}'),
+                          Text('Issued: ${AppFormatters.dateTime(invoice.issuedAt)}'),
                         ],
                       ],
                     ),
@@ -148,19 +149,6 @@ class _BillingScreenState extends State<BillingScreen> {
         },
       ),
     );
-  }
-  String _formatIssuedAt(String value) {
-    final parsed = DateTime.tryParse(value);
-    if (parsed == null) return value;
-
-    final local = parsed.toLocal();
-    const months = <String>[
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    final day = local.day.toString().padLeft(2, '0');
-    final month = months[local.month - 1];
-    return '$day $month ${local.year}';
   }
 
 }

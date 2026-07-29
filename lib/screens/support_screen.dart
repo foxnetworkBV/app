@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
+import '../utils/formatters.dart';
 import 'ticket_detail_screen.dart';
 
 class SupportScreen extends StatefulWidget {
@@ -184,7 +185,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     ),
                     leading: const Icon(Icons.confirmation_number_outlined),
                     title: Text(ticket.subject),
-                    subtitle: ticket.updatedAt.isEmpty ? null : Text('Updated ${ticket.updatedAt}'),
+                    subtitle: ticket.updatedAt.isEmpty ? null : Text('Updated ${AppFormatters.dateTime(ticket.updatedAt)}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

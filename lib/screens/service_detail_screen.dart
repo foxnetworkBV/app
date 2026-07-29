@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
+import '../utils/formatters.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final CustomerService service;
@@ -143,7 +144,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             Text(_title(state)),
           ]),
           const SizedBox(height: 24),
-          _InfoRow(label: 'Renewal', value: service.renewalDate.isEmpty ? 'No expiry' : service.renewalDate),
+          _InfoRow(label: 'Renewal', value: service.renewalDate.isEmpty ? 'No expiry' : AppFormatters.dateTime(service.renewalDate)),
           const SizedBox(height: 10),
           _InfoRow(label: 'Price', value: 'EUR ${service.price.toStringAsFixed(2)}'),
           const SizedBox(height: 24),
