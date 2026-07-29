@@ -34,7 +34,7 @@ class DemoData {
       number: 'INV-2026-1042',
       amount: 12.99,
       status: 'Paid',
-      dueDate: '30 July 2026',
+      issuedAt: '30 July 2026',
       currency: 'EUR',
     ),
     Invoice(
@@ -42,7 +42,7 @@ class DemoData {
       number: 'INV-2026-1043',
       amount: 19.99,
       status: 'Unpaid',
-      dueDate: '6 August 2026',
+      issuedAt: '6 August 2026',
       currency: 'EUR',
     ),
   ];

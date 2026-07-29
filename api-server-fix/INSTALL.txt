@@ -1,0 +1,28 @@
+FOXNETWORK API – LIVE INVOICES + SUPPORT FIX
+
+Replace these two files in your API server:
+
+1. src/App.php
+2. src/Integrations/PaymenterAdminClient.php
+
+The fix adds:
+- GET /api/invoices using live Paymenter admin invoices
+- GET /api/tickets using live Paymenter tickets plus mobile-created tickets
+- POST /api/tickets for creating support tickets from the app
+- automatic SQLite tickets table creation
+- safe user filtering via relationships.user.data.id
+- useful errors instead of silently returning an empty invoice list
+
+Required .env values:
+PAYMENTER_URL=https://your-paymenter-domain.example
+PAYMENTER_ADMIN_API_TOKEN=your_admin_api_token
+
+After uploading, restart the API server and test:
+GET https://api.foxnetwork.be/api/health
+The version should contain:
+paymenter-live-billing-support-4.5
+
+Then sign out and back into the app and refresh Billing and Support.
+
+Important:
+Mobile-created support tickets are saved in the FoxNetwork API SQLite database. Existing Paymenter tickets are also displayed. This avoids losing support functionality when Paymenter is temporarily unavailable.

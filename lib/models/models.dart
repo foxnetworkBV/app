@@ -65,7 +65,7 @@ class Invoice {
   final String number;
   final double amount;
   final String status;
-  final String dueDate;
+  final String issuedAt;
   final String currency;
 
   const Invoice({
@@ -73,17 +73,17 @@ class Invoice {
     required this.number,
     required this.amount,
     required this.status,
-    required this.dueDate,
+    required this.issuedAt,
     required this.currency,
   });
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     return Invoice(
       id: int.tryParse(json['id'].toString()) ?? 0,
-      number: json['number'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      number: (json['number'] ?? json['invoice_number'] ?? 'Invoice #${json['id'] ?? ''}').toString(),
+      amount: double.tryParse((json['amount'] ?? json['total'] ?? 0).toString()) ?? 0,
       status: (json['status'] ?? 'Unknown').toString(),
-      dueDate: (json['due_date'] ?? json['dueDate'] ?? '').toString(),
+      issuedAt: (json['issued_at'] ?? json['issuedAt'] ?? json['created_at'] ?? json['due_date'] ?? json['dueDate'] ?? '').toString(),
       currency: (json['currency_code'] ?? json['currency'] ?? 'EUR').toString(),
     );
   }
@@ -105,9 +105,9 @@ class SupportTicket {
   factory SupportTicket.fromJson(Map<String, dynamic> json) {
     return SupportTicket(
       id: int.tryParse(json['id'].toString()) ?? 0,
-      subject: json['subject'] as String,
+      subject: (json['subject'] ?? 'Support ticket').toString(),
       status: (json['status'] ?? 'Unknown').toString(),
-      updatedAt: json['updated_at'] as String,
+      updatedAt: (json['updated_at'] ?? json['updatedAt'] ?? '').toString(),
     );
   }
 }
