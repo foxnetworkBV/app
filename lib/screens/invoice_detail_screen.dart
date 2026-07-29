@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_badge.dart';
 
 class InvoiceDetailScreen extends StatefulWidget {
   final Invoice invoice;
@@ -71,8 +72,8 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
             Text(invoice.number, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              Chip(label: Text(invoice.status)),
-              Chip(label: Text('${invoice.currency} ${invoice.total.toStringAsFixed(2)}')),
+              StatusBadge(invoice.status),
+              Chip(label: Text(AppFormatters.money(invoice.total, invoice.currency))),
             ]),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -89,7 +90,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
               _row('Invoice ID', '#${invoice.id}'),
               _row('Invoice number', invoice.number),
               _row('Status', invoice.status),
-              _row('Total', '${invoice.currency} ${invoice.total.toStringAsFixed(2)}'),
+              _row('Total', AppFormatters.money(invoice.total, invoice.currency)),
               _row('Issued At', AppFormatters.dateTime(invoice.issuedAt)),
               _row('Due At', AppFormatters.dateTime(invoice.dueAt)),
               _row('Paid At', AppFormatters.dateTime(invoice.paidAt)),
@@ -105,8 +106,8 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                 Text(item.description, style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 _row('Quantity', item.quantity.toStringAsFixed(item.quantity % 1 == 0 ? 0 : 2)),
-                _row('Unit price', '${item.currency} ${item.price.toStringAsFixed(2)}'),
-                _row('Line total', '${item.currency} ${item.total.toStringAsFixed(2)}'),
+                _row('Unit price', AppFormatters.money(item.price, item.currency)),
+                _row('Line total', AppFormatters.money(item.total, item.currency)),
               ])))),
             if (invoice.notes.isNotEmpty) ...[
               const SizedBox(height: 16),

@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_badge.dart';
 
 class TicketDetailScreen extends StatefulWidget {
   final SupportTicket ticket;
@@ -67,7 +68,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             if (_loading) const SizedBox(height: 12),
             Text(detail.subject, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Wrap(spacing: 8, runSpacing: 8, children: [Chip(label: Text(detail.status)), if (detail.priority.isNotEmpty) Chip(label: Text(detail.priority))]),
+            Wrap(spacing: 8, runSpacing: 8, children: [StatusBadge(detail.status), if (detail.priority.isNotEmpty) Chip(label: Text(detail.priority))]),
             if (_error != null) ...[
               const SizedBox(height: 12),
               Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
