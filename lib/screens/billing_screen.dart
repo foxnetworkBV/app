@@ -99,7 +99,11 @@ class _BillingScreenState extends State<BillingScreen> {
                 return Card(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => InvoiceDetailScreen(invoice: invoice, session: widget.session))),
+                    onTap: () async {
+                      await Navigator.of(context, rootNavigator: true).push<void>(
+                        MaterialPageRoute<void>(builder: (_) => InvoiceDetailScreen(invoice: invoice, session: widget.session)),
+                      );
+                    },
                     child: Padding(
                     padding: const EdgeInsets.all(18),
                     child: Column(

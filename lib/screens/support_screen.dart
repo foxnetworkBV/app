@@ -174,7 +174,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 final ticket = tickets[index];
                 return Card(
                   child: ListTile(
-                    onTap: () => Navigator.of(context).push(
+                    onTap: () => Navigator.of(context, rootNavigator: true).push<void>(
                       MaterialPageRoute(
                         builder: (_) => TicketDetailScreen(
                           ticket: ticket,

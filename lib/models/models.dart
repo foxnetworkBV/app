@@ -164,6 +164,11 @@ class TicketDetail {
     required this.messages,
   });
 
+  factory TicketDetail.fromTicket(SupportTicket ticket) => TicketDetail(
+        id: ticket.id, subject: ticket.subject, status: ticket.status, priority: '', department: '',
+        createdAt: '', updatedAt: ticket.updatedAt, closedAt: '', webUrl: '', messages: const <TicketMessage>[],
+      );
+
   factory TicketDetail.fromJson(Map<String, dynamic> json) {
     final rawMessages = json['messages'] is List<dynamic>
         ? json['messages'] as List<dynamic>
@@ -265,6 +270,12 @@ class InvoiceDetail {
     required this.total,
     required this.items,
   });
+
+  factory InvoiceDetail.fromInvoice(Invoice invoice) => InvoiceDetail(
+        id: invoice.id, number: invoice.number, status: invoice.status, currency: invoice.currency,
+        issuedAt: invoice.issuedAt, dueAt: '', updatedAt: '', paidAt: '', pdfUrl: '', webUrl: '', notes: '',
+        total: invoice.amount, items: const <InvoiceItem>[],
+      );
 
   factory InvoiceDetail.fromJson(Map<String, dynamic> json) => InvoiceDetail(
         id: int.tryParse('${json['id'] ?? 0}') ?? 0,
