@@ -143,14 +143,24 @@ class TicketDetail {
   final int id;
   final String subject;
   final String status;
+  final String priority;
+  final String department;
+  final String createdAt;
   final String updatedAt;
+  final String closedAt;
+  final String webUrl;
   final List<TicketMessage> messages;
 
   const TicketDetail({
     required this.id,
     required this.subject,
     required this.status,
+    required this.priority,
+    required this.department,
+    required this.createdAt,
     required this.updatedAt,
+    required this.closedAt,
+    required this.webUrl,
     required this.messages,
   });
 
@@ -162,7 +172,12 @@ class TicketDetail {
       id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
       subject: (json['subject'] ?? 'Support ticket').toString(),
       status: (json['status'] ?? 'Unknown').toString(),
+      priority: (json['priority'] ?? '').toString(),
+      department: (json['department'] ?? '').toString(),
+      createdAt: (json['created_at'] ?? json['createdAt'] ?? '').toString(),
       updatedAt: (json['updated_at'] ?? json['updatedAt'] ?? '').toString(),
+      closedAt: (json['closed_at'] ?? json['closedAt'] ?? '').toString(),
+      webUrl: (json['web_url'] ?? '').toString(),
       messages: rawMessages
           .whereType<Map<String, dynamic>>()
           .map(TicketMessage.fromJson)
@@ -221,11 +236,55 @@ class InvoiceItem {
     total:double.tryParse('${j['total']??0}')??0, currency:'${j['currency']??'EUR'}');
 }
 class InvoiceDetail {
-  final int id; final String number,status,currency,issuedAt,dueAt,updatedAt,pdfUrl,webUrl; final double total; final List<InvoiceItem> items;
-  const InvoiceDetail({required this.id,required this.number,required this.status,required this.currency,required this.issuedAt,required this.dueAt,required this.updatedAt,required this.pdfUrl,required this.webUrl,required this.total,required this.items});
-  factory InvoiceDetail.fromJson(Map<String,dynamic> j)=>InvoiceDetail(
-    id:int.tryParse('${j['id']??0}')??0, number:'${j['number']??j['invoice_number']??'Invoice'}', status:'${j['status']??'Unknown'}',
-    currency:'${j['currency']??j['currency_code']??'EUR'}', issuedAt:'${j['issued_at']??''}', dueAt:'${j['due_at']??''}', updatedAt:'${j['updated_at']??''}',
-    pdfUrl:'${j['pdf_url']??''}', webUrl:'${j['web_url']??''}', total:double.tryParse('${j['total']??j['amount']??0}')??0,
-    items:(j['items'] is List ? (j['items'] as List).whereType<Map<String,dynamic>>().map(InvoiceItem.fromJson).toList():<InvoiceItem>[]));
+  final int id;
+  final String number;
+  final String status;
+  final String currency;
+  final String issuedAt;
+  final String dueAt;
+  final String updatedAt;
+  final String paidAt;
+  final String pdfUrl;
+  final String webUrl;
+  final String notes;
+  final double total;
+  final List<InvoiceItem> items;
+
+  const InvoiceDetail({
+    required this.id,
+    required this.number,
+    required this.status,
+    required this.currency,
+    required this.issuedAt,
+    required this.dueAt,
+    required this.updatedAt,
+    required this.paidAt,
+    required this.pdfUrl,
+    required this.webUrl,
+    required this.notes,
+    required this.total,
+    required this.items,
+  });
+
+  factory InvoiceDetail.fromJson(Map<String, dynamic> json) => InvoiceDetail(
+        id: int.tryParse('${json['id'] ?? 0}') ?? 0,
+        number: '${json['number'] ?? json['invoice_number'] ?? 'Invoice'}',
+        status: '${json['status'] ?? 'Unknown'}',
+        currency: '${json['currency'] ?? json['currency_code'] ?? 'EUR'}',
+        issuedAt: '${json['issued_at'] ?? json['issuedAt'] ?? ''}',
+        dueAt: '${json['due_at'] ?? json['dueDate'] ?? ''}',
+        updatedAt: '${json['updated_at'] ?? json['updatedAt'] ?? ''}',
+        paidAt: '${json['paid_at'] ?? json['paidAt'] ?? ''}',
+        pdfUrl: '${json['pdf_url'] ?? ''}',
+        webUrl: '${json['web_url'] ?? ''}',
+        notes: '${json['notes'] ?? ''}',
+        total: double.tryParse('${json['total'] ?? json['amount'] ?? 0}') ?? 0,
+        items: json['items'] is List
+            ? (json['items'] as List)
+                .whereType<Map<String, dynamic>>()
+                .map(InvoiceItem.fromJson)
+                .toList()
+            : <InvoiceItem>[],
+      );
 }
+

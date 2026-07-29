@@ -190,7 +190,10 @@ class ApiService {
   static Future<InvoiceDetail> getInvoice(String token, int invoiceId) async {
     final response = await http.get(_uri('api/invoices/$invoiceId'), headers: _headers(token)).timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
-    return InvoiceDetail.fromJson(jsonDecode(response.body) as Map<String,dynamic>);
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) throw Exception('Invalid invoice response.');
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return InvoiceDetail.fromJson(data);
   }
 
   static Future<List<SupportTicket>> getTickets(String token) async {
@@ -215,9 +218,10 @@ class ApiService {
         .get(_uri('api/tickets/$ticketId'), headers: _headers(token))
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
-    return TicketDetail.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) throw Exception('Invalid ticket response.');
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return TicketDetail.fromJson(data);
   }
 
   static Future<SupportTicket> createTicket(

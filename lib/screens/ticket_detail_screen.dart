@@ -32,11 +32,31 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   String _date(String raw) {
+    if (raw.isEmpty) return '—';
     final date = DateTime.tryParse(raw)?.toLocal();
     if (date == null) return raw;
     String two(int value) => value.toString().padLeft(2, '0');
-    return '${two(date.day)}/${two(date.month)}/${date.year} ${two(date.hour)}:${two(date.minute)}';
+    return '${two(date.day)}/${two(date.month)}/${date.year} '
+        '${two(date.hour)}:${two(date.minute)}';
   }
+
+  Widget _row(String label, String value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Text(label)),
+            const SizedBox(width: 18),
+            Expanded(
+              child: SelectableText(
+                value.isEmpty ? '—' : value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +67,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           IconButton(
             onPressed: _reload,
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh',
           ),
         ],
       ),
@@ -96,53 +115,96 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       ),
                 ),
                 const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Chip(label: Text(detail.status)),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Chip(label: Text(detail.status)),
+                    if (detail.priority.isNotEmpty)
+                      Chip(label: Text(detail.priority)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _row('Ticket ID', '#${detail.id.abs()}'),
+                        _row('Status', detail.status),
+                        _row('Priority', detail.priority),
+                        _row('Department', detail.department),
+                        _row('Created At', _date(detail.createdAt)),
+                        _row('Updated At', _date(detail.updatedAt)),
+                        if (detail.closedAt.isNotEmpty)
+                          _row('Closed At', _date(detail.closedAt)),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 18),
+                Text('Conversation', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 8),
                 if (detail.messages.isEmpty)
                   const Card(
                     child: Padding(
                       padding: EdgeInsets.all(20),
-                      child: Text('No messages are available for this ticket.'),
+                      child: Text('No messages were returned by Paymenter.'),
                     ),
                   )
                 else
-                  ...detail.messages.map((message) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Align(
-                          alignment: message.isStaff
-                              ? Alignment.centerLeft
-                              : Alignment.centerRight,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 560),
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                  ...detail.messages.map(
+                    (message) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Align(
+                        alignment: message.isStaff
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 560),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    message.author,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SelectableText(message.message),
+                                  if (message.createdAt.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
                                     Text(
-                                      message.author,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      _date(message.createdAt),
+                                      style: Theme.of(context).textTheme.bodySmall,
                                     ),
-                                    const SizedBox(height: 8),
-                                    SelectableText(message.message),
-                                    if (message.createdAt.isNotEmpty) ...[
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        _date(message.createdAt),
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                      ),
-                                    ],
                                   ],
-                                ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
+                if (detail.webUrl.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Paymenter ticket', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          SelectableText(detail.webUrl),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           );
