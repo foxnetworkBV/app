@@ -15,30 +15,6 @@ class LoginResult {
   });
 }
 
-class PaymenterAuthorization {
-  final Uri authorizationUrl;
-  final String state;
-
-  const PaymenterAuthorization({
-    required this.authorizationUrl,
-    required this.state,
-  });
-}
-
-class PaymenterLoginStatus {
-  final String status;
-  final String? token;
-  final User? user;
-  final String? message;
-
-  const PaymenterLoginStatus({
-    required this.status,
-    this.token,
-    this.user,
-    this.message,
-  });
-}
-
 class ApiService {
   static Uri _uri(String path) =>
       Uri.parse('${ApiConfig.baseUrl}/${path.replaceFirst(RegExp(r"^/"), "")}');
@@ -49,73 +25,29 @@ class ApiService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-  static Future<PaymenterAuthorization> createPaymenterAuthorization() async {
-    final response = await http.get(
-      _uri('api/paymenter/authorize'),
-      headers: _headers(),
-    );
-
-    _ensureSuccess(response);
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-    return PaymenterAuthorization(
-      authorizationUrl: Uri.parse(data['authorization_url'] as String),
-      state: data['state'] as String,
-    );
-  }
-
-  static Future<PaymenterLoginStatus> getPaymenterLoginStatus(
-    String state,
-  ) async {
-    http.Client? client;
-
+  static Future<LoginResult> login(
+    String email,
+    String password, {
+    http.Client? client,
+  }) async {
+    final requestClient = client ?? http.Client();
     try {
-      client = http.Client();
-      final uri = _uri('api/paymenter/status').replace(
-        queryParameters: {'state': state},
+      final response = await requestClient.post(
+        _uri('api/login'),
+        headers: _headers(),
+        body: jsonEncode({'email': email, 'password': password}),
       );
-
-      final response = await client
-          .get(
-            uri,
-            headers: {
-              ..._headers(),
-              'Cache-Control': 'no-cache',
-              'Connection': 'close',
-            },
-          )
-          .timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 404) {
-        return const PaymenterLoginStatus(status: 'expired');
-      }
-
-      if (response.statusCode >= 500) {
-        // Cloudflare/origin interruptions are temporary during OAuth polling.
-        return const PaymenterLoginStatus(status: 'pending');
-      }
 
       _ensureSuccess(response);
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-      return PaymenterLoginStatus(
-        status: data['status']?.toString() ?? 'failed',
-        token: data['token']?.toString(),
-        user: data['user'] is Map<String, dynamic>
-            ? User.fromJson(data['user'] as Map<String, dynamic>)
-            : null,
-        message: data['message']?.toString(),
+      return LoginResult(
+        token: data['token']?.toString() ?? '',
+        user: User.fromJson(data['user'] as Map<String, dynamic>),
       );
-    } on SocketException {
-      return const PaymenterLoginStatus(status: 'pending');
-    } on TimeoutException {
-      return const PaymenterLoginStatus(status: 'pending');
-    } on http.ClientException {
-      return const PaymenterLoginStatus(status: 'pending');
-    } on FormatException {
-      return const PaymenterLoginStatus(status: 'pending');
     } finally {
-      client?.close();
+      if (client == null) {
+        requestClient.close();
+      }
     }
   }
 

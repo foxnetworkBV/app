@@ -40,34 +40,14 @@ class SessionService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<PaymenterAuthorization> beginPaymenterLogin() {
-    return ApiService.createPaymenterAuthorization();
-  }
-
-  Future<bool> pollPaymenterLogin(String state) async {
-    final result = await ApiService.getPaymenterLoginStatus(state);
-
-    if (result.status == 'pending') return false;
-
-    if (result.status == 'complete' &&
-        result.token != null &&
-        result.token!.isNotEmpty &&
-        result.user != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', result.token!);
-      _token = result.token;
-      user = result.user;
-      isAuthenticated = true;
-      notifyListeners();
-      return true;
-    }
-
-    throw Exception(
-      result.message ??
-          (result.status == 'expired'
-              ? 'The login request expired. Please try again.'
-              : 'Paymenter login failed.'),
-    );
+  Future<void> signIn(String email, String password) async {
+    final result = await ApiService.login(email, password);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', result.token);
+    _token = result.token;
+    user = result.user;
+    isAuthenticated = true;
+    notifyListeners();
   }
 
   Future<List<CustomerService>> getServices() async {

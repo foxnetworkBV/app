@@ -15,30 +15,6 @@ class LoginResult {
   });
 }
 
-class PaymenterAuthorization {
-  final Uri authorizationUrl;
-  final String state;
-
-  const PaymenterAuthorization({
-    required this.authorizationUrl,
-    required this.state,
-  });
-}
-
-class PaymenterLoginStatus {
-  final String status;
-  final String? token;
-  final User? user;
-  final String? message;
-
-  const PaymenterLoginStatus({
-    required this.status,
-    this.token,
-    this.user,
-    this.message,
-  });
-}
-
 class ApiService {
   static Uri _uri(String path) =>
       Uri.parse('${ApiConfig.baseUrl}/${path.replaceFirst(RegExp(r"^/"), "")}');
@@ -49,84 +25,44 @@ class ApiService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-  static Future<PaymenterAuthorization> createPaymenterAuthorization() async {
-    final response = await http.get(
-      _uri('api/paymenter/authorize'),
-      headers: _headers(),
-    );
-
-    _ensureSuccess(response);
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-    return PaymenterAuthorization(
-      authorizationUrl: Uri.parse(data['authorization_url'] as String),
-      state: data['state'] as String,
-    );
-  }
-
-  static Future<PaymenterLoginStatus> getPaymenterLoginStatus(
-    String state,
-  ) async {
-    http.Client? client;
-
+  static Future<LoginResult> login(
+    String email,
+    String password, {
+    http.Client? client,
+  }) async {
+    final requestClient = client ?? http.Client();
     try {
-      client = http.Client();
-      final uri = _uri('api/paymenter/status').replace(
-        queryParameters: {'state': state},
+      final response = await requestClient.post(
+        _uri('api/mobile-auth.php'),
+        headers: _headers(),
+        body: jsonEncode({'email': email, 'password': password}),
       );
-
-      final response = await client
-          .get(
-            uri,
-            headers: {
-              ..._headers(),
-              'Cache-Control': 'no-cache',
-              'Connection': 'close',
-            },
-          )
-          .timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 404) {
-        return const PaymenterLoginStatus(status: 'expired');
-      }
-
-      if (response.statusCode >= 500) {
-        // Cloudflare/origin interruptions are temporary during OAuth polling.
-        return const PaymenterLoginStatus(status: 'pending');
-      }
 
       _ensureSuccess(response);
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-      return PaymenterLoginStatus(
-        status: data['status']?.toString() ?? 'failed',
-        token: data['token']?.toString(),
-        user: data['user'] is Map<String, dynamic>
-            ? User.fromJson(data['user'] as Map<String, dynamic>)
-            : null,
-        message: data['message']?.toString(),
+      return LoginResult(
+        token: data['token']?.toString() ?? '',
+        user: User.fromJson(data['user'] as Map<String, dynamic>),
       );
-    } on SocketException {
-      return const PaymenterLoginStatus(status: 'pending');
-    } on TimeoutException {
-      return const PaymenterLoginStatus(status: 'pending');
-    } on http.ClientException {
-      return const PaymenterLoginStatus(status: 'pending');
-    } on FormatException {
-      return const PaymenterLoginStatus(status: 'pending');
     } finally {
-      client?.close();
+      if (client == null) {
+        requestClient.close();
+      }
     }
   }
 
   static Future<User> getCurrentUser(String token) async {
     final response = await http.get(
-      _uri('api/me'),
-      headers: _headers(token),
+      _uri('api/mobile-me.php'),
+      headers: {
+        ..._headers(token),
+        'X-Session-Token': token,
+      },
     );
 
     _ensureSuccess(response);
-    return User.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   static Future<List<CustomerService>> getServices(String token) async {
@@ -135,7 +71,13 @@ class ApiService {
     for (var attempt = 1; attempt <= 3; attempt++) {
       try {
         final response = await http
-            .get(_uri('api/services'), headers: _headers(token))
+            .get(
+              _uri('api/mobile-services.php'),
+              headers: {
+                ..._headers(token),
+                'X-Session-Token': token,
+              },
+            )
             .timeout(const Duration(seconds: 35));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -171,7 +113,13 @@ class ApiService {
 
   static Future<List<Invoice>> getInvoices(String token) async {
     final response = await http
-        .get(_uri('api/invoices'), headers: _headers(token))
+        .get(
+          _uri('api/mobile-invoices.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body);
@@ -188,17 +136,38 @@ class ApiService {
 
 
   static Future<InvoiceDetail> getInvoice(String token, int invoiceId) async {
-    final response = await http.get(_uri('api/invoices/$invoiceId'), headers: _headers(token)).timeout(const Duration(seconds: 30));
+    final response = await http
+        .get(
+          _uri('api/mobile-invoices.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
+        .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) throw Exception('Invalid invoice response.');
-    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
-    return InvoiceDetail.fromJson(data);
+    final list = decoded['data'] is List<dynamic> ? decoded['data'] as List<dynamic> : <dynamic>[];
+    final match = list.whereType<Map<String, dynamic>>().firstWhere(
+      (entry) => int.tryParse(entry['id']?.toString() ?? '') == invoiceId,
+      orElse: () => <String, dynamic>{},
+    );
+    if (match.isEmpty) {
+      return InvoiceDetail.fromInvoice(Invoice(id: invoiceId, number: 'Invoice #$invoiceId', amount: 0, status: 'Unknown', issuedAt: '', currency: 'EUR'));
+    }
+    return InvoiceDetail.fromJson(match);
   }
 
   static Future<List<SupportTicket>> getTickets(String token) async {
     final response = await http
-        .get(_uri('api/tickets'), headers: _headers(token))
+        .get(
+          _uri('api/mobile-tickets.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body);
@@ -215,7 +184,13 @@ class ApiService {
 
   static Future<TicketDetail> getTicket(String token, int ticketId) async {
     final response = await http
-        .get(_uri('api/tickets/$ticketId'), headers: _headers(token))
+        .get(
+          _uri('api/mobile-ticket.php?id=$ticketId'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body);
@@ -231,8 +206,11 @@ class ApiService {
   }) async {
     final response = await http
         .post(
-          _uri('api/tickets'),
-          headers: _headers(token),
+          _uri('api/mobile-create-ticket.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
           body: jsonEncode({'subject': subject, 'message': message}),
         )
         .timeout(const Duration(seconds: 30));
@@ -248,8 +226,11 @@ class ApiService {
   ) async {
     final response = await http
         .get(
-          _uri('api/services/$serviceId/resources'),
-          headers: _headers(token),
+          _uri('api/mobile-resources.php?service_id=$serviceId'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
         )
         .timeout(const Duration(seconds: 25));
     _ensureSuccess(response);
@@ -264,9 +245,13 @@ class ApiService {
     String action,
   ) async {
     final response = await http.post(
-      _uri('api/services/$serviceId/power'),
-      headers: _headers(token),
-      body: jsonEncode({'action': action}),
+      _uri('api/power.php'),
+      headers: {
+        ..._headers(token),
+        'X-Session-Token': token,
+        'X-CSRF-Token': 'mobile',
+      },
+      body: jsonEncode({'id': serviceId.toString(), 'signal': action}),
     );
 
     _ensureSuccess(response);

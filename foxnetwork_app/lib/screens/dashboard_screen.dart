@@ -122,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               else if (snapshot.hasError)
                 Text(snapshot.error.toString().replaceFirst('Exception: ', ''))
               else if (services.isEmpty)
-                const Text('No Paymenter services found.')
+                const Text('No services found yet.')
               else
                 ...services.take(3).map(
                   (service) => Padding(

@@ -86,7 +86,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                   SizedBox(height: 160),
                   Icon(Icons.dns_outlined, size: 56),
                   SizedBox(height: 14),
-                  Center(child: Text('No Paymenter services found.')),
+                  Center(child: Text('No services found yet.')),
                 ],
               ),
             );

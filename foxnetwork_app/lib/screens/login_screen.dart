@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../services/session_service.dart';
 import '../theme/app_theme.dart';
@@ -18,32 +17,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool loading = false;
-  bool _cancelPolling = false;
   String? error;
 
-  Future<void> loginWithPaymenter() async {
-    _cancelPolling = true;
-
+  Future<void> _signIn() async {
     setState(() {
       loading = true;
       error = null;
     });
 
     try {
-      final authorization = await widget.session.beginPaymenterLogin();
-
-      final opened = await launchUrl(
-        authorization.authorizationUrl,
-        mode: LaunchMode.externalApplication,
+      await widget.session.signIn(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
-
-      if (!opened) {
-        throw Exception('Could not open the Paymenter login page.');
-      }
-
-      _cancelPolling = false;
-      await _waitForLogin(authorization.state);
     } catch (exception) {
       if (mounted) {
         setState(() {
@@ -54,32 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _waitForLogin(String state) async {
-    const maxAttempts = 100;
-
-    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (_cancelPolling || !mounted) return;
-
-      final complete = await widget.session.pollPaymenterLogin(state);
-      if (complete) {
-        if (mounted) {
-          setState(() {
-            loading = false;
-            error = null;
-          });
-        }
-        return;
-      }
-
-      await Future<void>.delayed(const Duration(seconds: 3));
-    }
-
-    throw Exception('The login request timed out. Please try again.');
-  }
-
   @override
   void dispose() {
-    _cancelPolling = true;
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -96,91 +63,98 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: SafeArea(
           child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                children: [
-                  Container(
-                    width: 118,
-                    height: 118,
-                    padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(
-                      color: FoxColors.navy800,
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: FoxColors.border),
-                      boxShadow: [
-                        BoxShadow(
-                          color: FoxColors.cyan.withOpacity(0.16),
-                          blurRadius: 34,
-                          spreadRadius: 2,
-                        ),
-                      ],
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 118,
+                      height: 118,
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: FoxColors.navy800,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: FoxColors.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: FoxColors.cyan.withOpacity(0.16),
+                            blurRadius: 34,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const FoxNetworkLogo(size: 74),
                     ),
-                    child: const FoxNetworkLogo(size: 74),
-                  ),
-                  const SizedBox(height: 22),
-                  const Text(
-                    'FoxNetwork',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Sign in securely with your existing Paymenter account.',
-                    textAlign: TextAlign.center,
-                  ),
-                  if (error != null) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      error!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.redAccent),
-                    ),
-                  ],
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: loading ? null : loginWithPaymenter,
-                      icon: const Icon(Icons.login_rounded),
-                      label: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: loading
-                            ? const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text('Waiting for authorization…'),
-                                ],
-                              )
-                            : const Text('Sign in with FoxNetwork'),
+                    const SizedBox(height: 22),
+                    const Text(
+                      'FoxNetwork',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.2,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'Authorize in Paymenter, then return to this tab. Login completes automatically.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Sign in with your FoxNetwork account to manage hosting, invoices and support.',
+                      textAlign: TextAlign.center,
+                    ),
+                    if (error != null) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
+                    ],
+                    const SizedBox(height: 28),
+                    TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(labelText: 'Email address'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      onSubmitted: (_) => _signIn(),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: loading ? null : _signIn,
+                        icon: const Icon(Icons.login_rounded),
+                        label: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: loading
+                              ? const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Signing in…'),
+                                  ],
+                                )
+                              : const Text('Sign in'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }

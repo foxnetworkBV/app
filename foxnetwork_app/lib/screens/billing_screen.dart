@@ -79,7 +79,7 @@ class _BillingScreenState extends State<BillingScreen> {
                   SizedBox(height: 180),
                   Icon(Icons.receipt_long_outlined, size: 58),
                   SizedBox(height: 14),
-                  Center(child: Text('No Paymenter invoices found.')),
+                  Center(child: Text('No invoices found yet.')),
                 ],
               ),
             );
