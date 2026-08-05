@@ -1,0 +1,7 @@
+flutter_icons:
+  android: true
+  ios: true
+  web: true
+  image_path: "assets/foxnetwork_logo.png"
+  adaptive_icon_background: "#0F1A30"
+  adaptive_icon_foreground: "assets/foxnetwork_logo.png"
