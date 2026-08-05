@@ -215,9 +215,9 @@ class ApiService {
         )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
-    return SupportTicket.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return SupportTicket.fromJson(data);
   }
 
   static Future<ServerResources> getServerResources(
@@ -234,9 +234,9 @@ class ApiService {
         )
         .timeout(const Duration(seconds: 25));
     _ensureSuccess(response);
-    return ServerResources.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return ServerResources.fromJson(data);
   }
 
   static Future<void> sendPowerAction(

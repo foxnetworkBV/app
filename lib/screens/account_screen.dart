@@ -43,7 +43,7 @@ class AccountScreen extends StatelessWidget {
         Text('FoxNetwork', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         Card(clipBehavior: Clip.antiAlias, child: Column(children: [
-          _linkTile(context, icon: Icons.language_rounded, title: 'Customer portal', subtitle: 'Manage orders, invoices and profile', url: 'https://billing.foxnetwork.be'),
+          _linkTile(context, icon: Icons.language_rounded, title: 'Customer portal', subtitle: 'Manage orders, invoices and profile', url: 'https://foxnetwork.be/client'),
           const Divider(height: 1),
           _linkTile(context, icon: Icons.dns_rounded, title: 'Service panel', subtitle: 'Manage game and hosting services', url: 'https://panel.foxnetwork.be'),
           const Divider(height: 1),
@@ -55,7 +55,7 @@ class AccountScreen extends StatelessWidget {
         Text('Help & legal', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         Card(clipBehavior: Clip.antiAlias, child: Column(children: [
-          _linkTile(context, icon: Icons.support_agent_rounded, title: 'Contact support', subtitle: 'Open the support portal', url: 'https://billing.foxnetwork.be/tickets'),
+          _linkTile(context, icon: Icons.support_agent_rounded, title: 'Contact support', subtitle: 'Open the support portal', url: 'https://foxnetwork.be/support'),
           const Divider(height: 1),
           _linkTile(context, icon: Icons.mail_outline_rounded, title: 'Email support', subtitle: 'support@foxnetwork.be', url: 'mailto:support@foxnetwork.be'),
           const Divider(height: 1),

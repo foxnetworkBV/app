@@ -33,7 +33,7 @@ class ApiService {
     final requestClient = client ?? http.Client();
     try {
       final response = await requestClient.post(
-        _uri('api/login'),
+        _uri('api/mobile-auth.php'),
         headers: _headers(),
         body: jsonEncode({'email': email, 'password': password}),
       );
@@ -53,12 +53,16 @@ class ApiService {
 
   static Future<User> getCurrentUser(String token) async {
     final response = await http.get(
-      _uri('api/me'),
-      headers: _headers(token),
+      _uri('api/mobile-me.php'),
+      headers: {
+        ..._headers(token),
+        'X-Session-Token': token,
+      },
     );
 
     _ensureSuccess(response);
-    return User.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   static Future<List<CustomerService>> getServices(String token) async {
@@ -67,7 +71,13 @@ class ApiService {
     for (var attempt = 1; attempt <= 3; attempt++) {
       try {
         final response = await http
-            .get(_uri('api/services'), headers: _headers(token))
+            .get(
+              _uri('api/mobile-services.php'),
+              headers: {
+                ..._headers(token),
+                'X-Session-Token': token,
+              },
+            )
             .timeout(const Duration(seconds: 35));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -103,7 +113,13 @@ class ApiService {
 
   static Future<List<Invoice>> getInvoices(String token) async {
     final response = await http
-        .get(_uri('api/invoices'), headers: _headers(token))
+        .get(
+          _uri('api/mobile-invoices.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body);
@@ -121,7 +137,13 @@ class ApiService {
 
   static Future<List<SupportTicket>> getTickets(String token) async {
     final response = await http
-        .get(_uri('api/tickets'), headers: _headers(token))
+        .get(
+          _uri('api/mobile-tickets.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body);
@@ -138,12 +160,19 @@ class ApiService {
 
   static Future<TicketDetail> getTicket(String token, int ticketId) async {
     final response = await http
-        .get(_uri('api/tickets/$ticketId'), headers: _headers(token))
+        .get(
+          _uri('api/mobile-ticket.php?id=$ticketId'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
-    return TicketDetail.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) throw Exception('Invalid ticket response.');
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return TicketDetail.fromJson(data);
   }
 
   static Future<SupportTicket> createTicket(
@@ -153,15 +182,18 @@ class ApiService {
   }) async {
     final response = await http
         .post(
-          _uri('api/tickets'),
-          headers: _headers(token),
+          _uri('api/mobile-create-ticket.php'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
           body: jsonEncode({'subject': subject, 'message': message}),
         )
         .timeout(const Duration(seconds: 30));
     _ensureSuccess(response);
-    return SupportTicket.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return SupportTicket.fromJson(data);
   }
 
   static Future<ServerResources> getServerResources(
@@ -170,14 +202,17 @@ class ApiService {
   ) async {
     final response = await http
         .get(
-          _uri('api/services/$serviceId/resources'),
-          headers: _headers(token),
+          _uri('api/mobile-resources.php?service_id=$serviceId'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
         )
         .timeout(const Duration(seconds: 25));
     _ensureSuccess(response);
-    return ServerResources.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return ServerResources.fromJson(data);
   }
 
   static Future<void> sendPowerAction(
@@ -186,9 +221,13 @@ class ApiService {
     String action,
   ) async {
     final response = await http.post(
-      _uri('api/services/$serviceId/power'),
-      headers: _headers(token),
-      body: jsonEncode({'action': action}),
+      _uri('api/power.php'),
+      headers: {
+        ..._headers(token),
+        'X-Session-Token': token,
+        'X-CSRF-Token': 'mobile',
+      },
+      body: jsonEncode({'id': serviceId.toString(), 'signal': action}),
     );
 
     _ensureSuccess(response);
