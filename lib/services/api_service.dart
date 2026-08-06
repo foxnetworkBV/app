@@ -254,6 +254,26 @@ class ApiService {
     );
 
     _ensureSuccess(response);
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic> && decoded['ok'] == false) {
+      throw Exception((decoded['error'] ?? decoded['message'] ?? 'Power action failed').toString());
+    }
+  }
+
+  static Future<String> getConsoleUrl(String token, int serviceId) async {
+    final response = await http
+        .get(
+          _uri('api/mobile-console.php?service_id=$serviceId'),
+          headers: {
+            ..._headers(token),
+            'X-Session-Token': token,
+          },
+        )
+        .timeout(const Duration(seconds: 20));
+    _ensureSuccess(response);
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
+    return (data['url'] ?? '').toString();
   }
 
   static String _errorMessage(http.Response response) {

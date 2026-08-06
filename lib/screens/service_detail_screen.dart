@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
 import '../utils/formatters.dart';
@@ -105,6 +106,23 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     }
   }
 
+  Future<void> _openConsole() async {
+    setState(() {
+      message = null;
+      error = null;
+    });
+    try {
+      final value = await widget.session.getConsoleUrl(widget.service.id);
+      final uri = Uri.tryParse(value);
+      if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not open server console.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => error = e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
   String _title(String value) => value.isEmpty ? value : '${value[0].toUpperCase()}${value.substring(1)}';
   String _bytes(int bytes) {
     if (bytes >= 1073741824) return '${(bytes / 1073741824).toStringAsFixed(2)} GB';
@@ -143,6 +161,12 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             const SizedBox(width: 8),
             Text(_title(state)),
           ]),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: _openConsole,
+            icon: const Icon(Icons.terminal_rounded),
+            label: const Text('Open console'),
+          ),
           const SizedBox(height: 24),
           _InfoRow(label: 'Renewal', value: service.renewalDate.isEmpty ? 'No expiry' : AppFormatters.dateTime(service.renewalDate)),
           const SizedBox(height: 10),
