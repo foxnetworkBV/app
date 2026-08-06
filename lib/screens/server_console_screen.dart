@@ -56,10 +56,6 @@ class _ServerConsoleScreenState extends State<ServerConsoleScreen> {
 
     try {
       final credentials = await widget.session.getConsoleCredentials(widget.service.id);
-      if (credentials.socket.isEmpty || credentials.token.isEmpty) {
-        throw Exception('Console is not available for this server.');
-      }
-
       final channel = WebSocketChannel.connect(Uri.parse(credentials.socket));
       _channel = channel;
       _subscription = channel.stream.listen(

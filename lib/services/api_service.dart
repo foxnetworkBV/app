@@ -26,11 +26,19 @@ class ConsoleCredentials {
   });
 
   factory ConsoleCredentials.fromJson(Map<String, dynamic> json) {
-    return ConsoleCredentials(
+    final credentials = ConsoleCredentials(
       socket: (json['socket'] ?? '').toString(),
       token: (json['token'] ?? '').toString(),
       server: (json['server'] ?? '').toString(),
     );
+    if (credentials.socket.isEmpty || credentials.token.isEmpty) {
+      final oldPanelUrl = (json['url'] ?? '').toString();
+      if (oldPanelUrl.isNotEmpty) {
+        throw Exception('The live mobile console API is still old. Upload the updated mobile-console.php file.');
+      }
+      throw Exception('Console websocket access is missing for this server.');
+    }
+    return credentials;
   }
 }
 
@@ -292,6 +300,9 @@ class ApiService {
         .timeout(const Duration(seconds: 20));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    if (decoded['ok'] == false) {
+      throw Exception((decoded['error'] ?? decoded['message'] ?? 'Could not open console').toString());
+    }
     final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
     return ConsoleCredentials.fromJson(data);
   }
