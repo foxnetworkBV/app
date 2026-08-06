@@ -26,8 +26,9 @@ class ConsoleCredentials {
   });
 
   factory ConsoleCredentials.fromJson(Map<String, dynamic> json) {
+    final socket = _normalizeSocketUrl((json['socket'] ?? '').toString());
     final credentials = ConsoleCredentials(
-      socket: (json['socket'] ?? '').toString(),
+      socket: socket,
       token: (json['token'] ?? '').toString(),
       server: (json['server'] ?? '').toString(),
     );
@@ -39,6 +40,13 @@ class ConsoleCredentials {
       throw Exception('Console websocket access is missing for this server.');
     }
     return credentials;
+  }
+
+  static String _normalizeSocketUrl(String value) {
+    if (value.startsWith('https://')) return 'wss://${value.substring(8)}';
+    if (value.startsWith('http://')) return 'ws://${value.substring(7)}';
+    if (value.startsWith('//')) return 'wss:$value';
+    return value;
   }
 }
 
