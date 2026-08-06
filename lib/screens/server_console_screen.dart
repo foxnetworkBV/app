@@ -169,12 +169,14 @@ class _ServerConsoleScreenState extends State<ServerConsoleScreen> {
                             style: TextStyle(color: Theme.of(context).colorScheme.error),
                           );
                         }
-                        return SelectableText(
-                          _lines[index],
-                          style: const TextStyle(
+                        return SelectableText.rich(
+                          _ansiTextSpan(
+                            _lines[index],
+                            const TextStyle(
                             color: Color(0xFFE7ECEF),
                             fontFamily: 'monospace',
                             fontSize: 13,
+                            ),
                           ),
                         );
                       },
@@ -211,5 +213,73 @@ class _ServerConsoleScreenState extends State<ServerConsoleScreen> {
         ],
       ),
     );
+  }
+
+  TextSpan _ansiTextSpan(String value, TextStyle baseStyle) {
+    final spans = <TextSpan>[];
+    final pattern = RegExp(r'\x1B\[([0-9;]*)m');
+    var currentStyle = baseStyle;
+    var cursor = 0;
+
+    for (final match in pattern.allMatches(value)) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: value.substring(cursor, match.start), style: currentStyle));
+      }
+      currentStyle = _applyAnsiCodes(currentStyle, baseStyle, match.group(1) ?? '0');
+      cursor = match.end;
+    }
+
+    if (cursor < value.length) {
+      spans.add(TextSpan(text: value.substring(cursor), style: currentStyle));
+    }
+
+    return TextSpan(style: baseStyle, children: spans.isEmpty ? [TextSpan(text: value, style: baseStyle)] : spans);
+  }
+
+  TextStyle _applyAnsiCodes(TextStyle currentStyle, TextStyle baseStyle, String value) {
+    final codes = value.isEmpty ? <int>[0] : value.split(';').map((part) => int.tryParse(part) ?? 0).toList();
+    var style = currentStyle;
+
+    for (final code in codes) {
+      if (code == 0) {
+        style = baseStyle;
+      } else if (code == 1) {
+        style = style.copyWith(fontWeight: FontWeight.w700);
+      } else if (code == 22) {
+        style = style.copyWith(fontWeight: baseStyle.fontWeight);
+      } else if (code == 39) {
+        style = style.copyWith(color: baseStyle.color);
+      } else if (code >= 30 && code <= 37) {
+        style = style.copyWith(color: _ansiColor(code - 30, bright: false));
+      } else if (code >= 90 && code <= 97) {
+        style = style.copyWith(color: _ansiColor(code - 90, bright: true));
+      }
+    }
+
+    return style;
+  }
+
+  Color _ansiColor(int value, {required bool bright}) {
+    const normal = <Color>[
+      Color(0xFF1F2328),
+      Color(0xFFDC3545),
+      Color(0xFF2EA043),
+      Color(0xFFD29922),
+      Color(0xFF58A6FF),
+      Color(0xFFBC8CFF),
+      Color(0xFF39C5CF),
+      Color(0xFFE7ECEF),
+    ];
+    const brightColors = <Color>[
+      Color(0xFF6E7681),
+      Color(0xFFFF7B72),
+      Color(0xFF7EE787),
+      Color(0xFFFFD33D),
+      Color(0xFF79C0FF),
+      Color(0xFFD2A8FF),
+      Color(0xFF56D4DD),
+      Color(0xFFFFFFFF),
+    ];
+    return bright ? brightColors[value] : normal[value];
   }
 }

@@ -47,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: FoxColors.cyan.withOpacity(0.16),
+                      color: FoxColors.cyan.withValues(alpha: 0.16),
                       blurRadius: 28,
                       offset: const Offset(0, 12),
                     ),
@@ -60,7 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: 58,
                       padding: const EdgeInsets.all(11),
                       decoration: BoxDecoration(
-                        color: FoxColors.navy950.withOpacity(0.88),
+                        color: FoxColors.navy950.withValues(alpha: 0.88),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: const FoxNetworkLogo(size: 38),

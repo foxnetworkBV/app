@@ -107,22 +107,22 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: FoxColors.navy800,
-        indicatorColor: FoxColors.cyan.withOpacity(0.16),
+        indicatorColor: FoxColors.cyan.withValues(alpha: 0.16),
         elevation: 0,
         height: 72,
-        labelTextStyle: MaterialStateProperty.resolveWith(
+        labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
-            color: states.contains(MaterialState.selected)
+            color: states.contains(WidgetState.selected)
                 ? FoxColors.cyan
                 : Colors.white60,
-            fontWeight: states.contains(MaterialState.selected)
+            fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
                 : FontWeight.w500,
           ),
         ),
-        iconTheme: MaterialStateProperty.resolveWith(
+        iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
-            color: states.contains(MaterialState.selected)
+            color: states.contains(WidgetState.selected)
                 ? FoxColors.cyan
                 : Colors.white60,
           ),

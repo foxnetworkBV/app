@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: Border.all(color: FoxColors.border),
                         boxShadow: [
                           BoxShadow(
-                            color: FoxColors.cyan.withOpacity(0.16),
+                            color: FoxColors.cyan.withValues(alpha: 0.16),
                             blurRadius: 34,
                             spreadRadius: 2,
                           ),
