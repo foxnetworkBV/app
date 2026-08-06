@@ -57,7 +57,7 @@ class AccountScreen extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.language),
                   title: Text('Customer portal'),
-                  subtitle: Text('billing.foxnetwork.be'),
+                  subtitle: Text('foxnetwork.be/client'),
                 ),
                 Divider(height: 1),
                 ListTile(

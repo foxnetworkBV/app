@@ -7,7 +7,7 @@ void main() {
   test('login posts credentials to the new API endpoint', () async {
     final client = MockClient((request) async {
       expect(request.method, equals('POST'));
-      expect(request.url.path, equals('/api/login'));
+      expect(request.url.path, equals('/api/mobile-auth.php'));
       expect(request.body, equals('{"email":"test@example.com","password":"secret"}'));
 
       return http.Response(
