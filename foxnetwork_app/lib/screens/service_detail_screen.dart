@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
+import 'server_console_screen.dart';
 import '../services/session_service.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
@@ -110,16 +110,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       message = null;
       error = null;
     });
-    try {
-      final value = await widget.session.getConsoleUrl(widget.service.id);
-      final uri = Uri.tryParse(value);
-      if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        throw Exception('Could not open server console.');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => error = e.toString().replaceFirst('Exception: ', ''));
-    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ServerConsoleScreen(
+          service: widget.service,
+          session: widget.session,
+        ),
+      ),
+    );
   }
 
   String _title(String value) => value.isEmpty ? value : '${value[0].toUpperCase()}${value.substring(1)}';

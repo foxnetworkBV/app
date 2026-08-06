@@ -14,6 +14,26 @@ class LoginResult {
   });
 }
 
+class ConsoleCredentials {
+  final String socket;
+  final String token;
+  final String server;
+
+  const ConsoleCredentials({
+    required this.socket,
+    required this.token,
+    required this.server,
+  });
+
+  factory ConsoleCredentials.fromJson(Map<String, dynamic> json) {
+    return ConsoleCredentials(
+      socket: (json['socket'] ?? '').toString(),
+      token: (json['token'] ?? '').toString(),
+      server: (json['server'] ?? '').toString(),
+    );
+  }
+}
+
 class ApiService {
   static Uri _uri(String path) =>
       Uri.parse('${ApiConfig.baseUrl}/${path.replaceFirst(RegExp(r"^/"), "")}');
@@ -236,7 +256,7 @@ class ApiService {
     }
   }
 
-  static Future<String> getConsoleUrl(String token, int serviceId) async {
+  static Future<ConsoleCredentials> getConsoleCredentials(String token, int serviceId) async {
     final response = await http
         .get(
           _uri('api/mobile-console.php?service_id=$serviceId'),
@@ -249,7 +269,7 @@ class ApiService {
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
-    return (data['url'] ?? '').toString();
+    return ConsoleCredentials.fromJson(data);
   }
 
   static String _errorMessage(http.Response response) {

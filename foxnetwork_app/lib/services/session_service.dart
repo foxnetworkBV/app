@@ -114,12 +114,12 @@ class SessionService extends ChangeNotifier {
     return ApiService.getServerResources(currentToken, serviceId);
   }
 
-  Future<String> getConsoleUrl(int serviceId) async {
+  Future<ConsoleCredentials> getConsoleCredentials(int serviceId) async {
     final currentToken = _token;
     if (currentToken == null || currentToken.isEmpty) {
       throw Exception('You are not signed in.');
     }
-    return ApiService.getConsoleUrl(currentToken, serviceId);
+    return ApiService.getConsoleCredentials(currentToken, serviceId);
   }
 
   Future<void> logout() async {
