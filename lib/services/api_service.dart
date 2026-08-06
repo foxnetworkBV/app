@@ -344,10 +344,15 @@ class ApiService {
     } catch (_) {
     }
 
-    if (text.contains('cloudflare.com') || text.contains('error_code":502') || text.contains('Bad gateway')) {
-      return 'FoxNetwork API is temporarily unavailable through Cloudflare. Try again in a minute.';
+    final lower = text.toLowerCase();
+    if (lower.contains('cloudflare.com') ||
+        lower.contains('error_code":502') ||
+        lower.contains('bad gateway') ||
+        lower.contains('origin web server returned an invalid or incomplete response') ||
+        lower.contains('origin is overloaded or misconfigured')) {
+      return 'Console is temporarily unavailable because the FoxNetwork API server is not responding. Try again in a minute.';
     }
-    if (text.contains('Connection refused')) {
+    if (lower.contains('connection refused')) {
       return 'The server is refusing the console connection. Check that the node service is online.';
     }
     if (text.length > 260) {
