@@ -46,12 +46,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? FoxColors.muted;
+
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(child: Container(color: FoxColors.page)),
-          Positioned(top: -110, right: -100, child: Container(width: 300, height: 300, decoration: BoxDecoration(color: FoxColors.orange.withValues(alpha: .09), shape: BoxShape.circle))),
-          Positioned(bottom: -150, left: -120, child: Container(width: 360, height: 360, decoration: BoxDecoration(color: FoxColors.navy.withValues(alpha: .05), shape: BoxShape.circle))),
+          Positioned.fill(child: Container(color: theme.scaffoldBackgroundColor)),
+          Positioned(top: -110, right: -100, child: Container(width: 300, height: 300, decoration: BoxDecoration(color: FoxColors.orange.withValues(alpha: isDark ? .16 : .09), shape: BoxShape.circle))),
+          Positioned(bottom: -150, left: -120, child: Container(width: 360, height: 360, decoration: BoxDecoration(color: (isDark ? FoxColors.blue : FoxColors.navy).withValues(alpha: isDark ? .10 : .05), shape: BoxShape.circle))),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -62,20 +67,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Image.asset('assets/foxnetwork_logo.png', width: 118, height: 118),
                       const SizedBox(height: 20),
-                      const Text('Welcome to FoxNetwork', textAlign: TextAlign.center, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: FoxColors.navy, letterSpacing: -.7)),
+                      Text('Welcome to FoxNetwork', textAlign: TextAlign.center, style: theme.textTheme.headlineMedium?.copyWith(fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: -.7)),
                       const SizedBox(height: 9),
-                      const Text('Sign in with your FoxNetwork account to manage hosting, invoices and support.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, height: 1.5, color: FoxColors.muted)),
+                      Text('Sign in with your FoxNetwork account to manage hosting, invoices and support.', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15, height: 1.5)),
                       const SizedBox(height: 30),
                       Container(
                         padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: FoxColors.border), boxShadow: const [BoxShadow(color: Color(0x120F1A30), blurRadius: 30, offset: Offset(0, 14))]),
+                        decoration: BoxDecoration(color: scheme.surface, borderRadius: BorderRadius.circular(24), border: Border.all(color: scheme.outlineVariant), boxShadow: isDark ? const [] : const [BoxShadow(color: Color(0x120F1A30), blurRadius: 30, offset: Offset(0, 14))]),
                         child: Column(
                           children: [
                             Row(
                               children: [
                                 Container(width: 44, height: 44, decoration: BoxDecoration(color: FoxColors.orange.withValues(alpha: .1), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.shield_outlined, color: FoxColors.orange)),
                                 const SizedBox(width: 13),
-                                const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Secure customer login', style: TextStyle(fontWeight: FontWeight.w800, color: FoxColors.navy)), SizedBox(height: 2), Text('Powered by your FoxNetwork account', style: TextStyle(fontSize: 12, color: FoxColors.muted))]))
+                                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Secure customer login', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)), const SizedBox(height: 2), Text('Powered by your FoxNetwork account', style: theme.textTheme.bodySmall?.copyWith(fontSize: 12))]))
                               ],
                             ),
                             if (error != null) ...[
@@ -114,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.lock_outline_rounded, size: 15, color: FoxColors.muted), SizedBox(width: 6), Text('Your password is never stored in this app', style: TextStyle(fontSize: 12, color: FoxColors.muted))]),
+                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.lock_outline_rounded, size: 15, color: mutedColor), const SizedBox(width: 6), Text('Your password is never stored in this app', style: TextStyle(fontSize: 12, color: mutedColor))]),
                     ],
                   ),
                 ),
