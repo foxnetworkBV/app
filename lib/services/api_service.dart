@@ -309,7 +309,7 @@ class ApiService {
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     if (decoded['ok'] == false) {
-      throw Exception((decoded['error'] ?? decoded['message'] ?? 'Could not open console').toString());
+      throw Exception(_friendlyError(decoded['error'] ?? decoded['message'] ?? 'Could not open console'));
     }
     final data = decoded['data'] is Map<String, dynamic> ? decoded['data'] as Map<String, dynamic> : decoded;
     return ConsoleCredentials.fromJson(data);
@@ -323,13 +323,37 @@ class ApiService {
     try {
       final value = jsonDecode(response.body);
       if (value is Map<String, dynamic>) {
-        return (value['message'] ?? value['error'] ?? response.body).toString();
+        return _friendlyError(value['message'] ?? value['error'] ?? value['detail'] ?? response.body);
       }
     } catch (_) {
       // Return the original body when it is not JSON.
     }
 
-    return response.body;
+    return _friendlyError(response.body);
+  }
+
+  static String _friendlyError(Object? value) {
+    final text = value?.toString().trim() ?? '';
+    if (text.isEmpty) return 'Server error. Please try again.';
+
+    try {
+      final decoded = jsonDecode(text);
+      if (decoded is Map<String, dynamic>) {
+        return _friendlyError(decoded['detail'] ?? decoded['title'] ?? decoded['message'] ?? decoded['error']);
+      }
+    } catch (_) {
+    }
+
+    if (text.contains('cloudflare.com') || text.contains('error_code":502') || text.contains('Bad gateway')) {
+      return 'FoxNetwork API is temporarily unavailable through Cloudflare. Try again in a minute.';
+    }
+    if (text.contains('Connection refused')) {
+      return 'The server is refusing the console connection. Check that the node service is online.';
+    }
+    if (text.length > 260) {
+      return '${text.substring(0, 260)}...';
+    }
+    return text;
   }
 
   static void _ensureSuccess(http.Response response) {
