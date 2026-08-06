@@ -20,6 +20,8 @@ class _FoxNetworkAppState extends State<FoxNetworkApp> {
       title: 'FoxNetwork',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: AnimatedBuilder(
         animation: session,
         builder: (context, _) {
