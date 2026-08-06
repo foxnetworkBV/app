@@ -355,6 +355,9 @@ class ApiService {
     if (lower.contains('connection refused')) {
       return 'The server is refusing the console connection. Check that the node service is online.';
     }
+    if (lower.contains('no query results for model') || lower.contains('pterodactyl') && lower.contains('server')) {
+      return 'This server was deleted in Pterodactyl and is no longer linked. Recreate or relink the service in the panel.';
+    }
     if (text.length > 260) {
       return '${text.substring(0, 260)}...';
     }
