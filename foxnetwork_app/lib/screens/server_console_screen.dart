@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../config/api_config.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
 
@@ -56,7 +58,13 @@ class _ServerConsoleScreenState extends State<ServerConsoleScreen> {
 
     try {
       final credentials = await widget.session.getConsoleCredentials(widget.service.id);
-      final channel = WebSocketChannel.connect(Uri.parse(credentials.socket));
+      final channel = IOWebSocketChannel.connect(
+        Uri.parse(credentials.socket),
+        headers: const {
+          'Origin': ApiConfig.baseUrl,
+          'User-Agent': 'FoxNetwork-Mobile-App',
+        },
+      );
       _channel = channel;
       _subscription = channel.stream.listen(
         _handleMessage,
