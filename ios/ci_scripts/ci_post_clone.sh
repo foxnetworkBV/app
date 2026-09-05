@@ -4,13 +4,14 @@ set -eu
 
 FLUTTER_VERSION="3.47.2"
 FLUTTER_HOME="$HOME/flutter"
+REPOSITORY_PATH="${CI_PRIMARY_REPOSITORY_PATH:-${CI_WORKSPACE_PATH}/repository}"
 
 git clone --depth 1 --branch "$FLUTTER_VERSION" \
   https://github.com/flutter/flutter.git "$FLUTTER_HOME"
 
 export PATH="$FLUTTER_HOME/bin:$PATH"
 
-cd "$CI_WORKSPACE"
+cd "$REPOSITORY_PATH"
 flutter precache --ios
 flutter pub get
 
