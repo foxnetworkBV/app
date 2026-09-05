@@ -19,7 +19,41 @@ void main() {
 
     final result = await ApiService.login('test@example.com', 'secret', client: client);
 
-    expect(result.token, 'abc123');
-    expect(result.user.email, 'test@example.com');
+    expect(result.result!.token, 'abc123');
+    expect(result.result!.user.email, 'test@example.com');
+  });
+
+  test('login exposes the site two-factor challenge on a 401 response', () async {
+    final client = MockClient((request) async => http.Response(
+      '{"ok":false,"two_factor_required":true,"challenge_token":"challenge","method":"totp","expires_in":600}',
+      401,
+    ));
+
+    final attempt = await ApiService.login('test@example.com', 'secret', client: client);
+
+    expect(attempt.requiresTwoFactor, isTrue);
+    expect(attempt.challenge!.token, 'challenge');
+    expect(attempt.challenge!.method, 'totp');
+  });
+
+  test('two-factor verification resumes the site challenge session', () async {
+    final client = MockClient((request) async {
+      expect(request.headers['authorization'], equals('Bearer challenge'));
+      expect(request.body, equals('{"two_factor_code":"123456"}'));
+      return http.Response(
+        '{"ok":true,"token":"signed-in","user":{"id":1,"name":"Test User","email":"test@example.com"}}',
+        200,
+      );
+    });
+
+    final attempt = await ApiService.login(
+      'test@example.com',
+      'secret',
+      twoFactorCode: '123456',
+      challengeToken: 'challenge',
+      client: client,
+    );
+
+    expect(attempt.result!.token, 'signed-in');
   });
 }

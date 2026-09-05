@@ -14,6 +14,43 @@ class LoginResult {
   });
 }
 
+class TwoFactorChallenge {
+  final String token;
+  final String method;
+  final int expiresIn;
+  final int? attemptsRemaining;
+
+  const TwoFactorChallenge({
+    required this.token,
+    required this.method,
+    required this.expiresIn,
+    this.attemptsRemaining,
+  });
+
+  factory TwoFactorChallenge.fromJson(Map<String, dynamic> json) =>
+      TwoFactorChallenge(
+        token: (json['challenge_token'] ?? '').toString(),
+        method: (json['method'] ?? 'totp').toString(),
+        expiresIn: int.tryParse('${json['expires_in'] ?? 0}') ?? 0,
+        attemptsRemaining: json['attempts_remaining'] == null
+            ? null
+            : int.tryParse('${json['attempts_remaining']}'),
+      );
+}
+
+class LoginAttempt {
+  final LoginResult? result;
+  final TwoFactorChallenge? challenge;
+
+  const LoginAttempt._({this.result, this.challenge});
+
+  const LoginAttempt.authenticated(LoginResult result) : this._(result: result);
+  const LoginAttempt.twoFactor(TwoFactorChallenge challenge)
+      : this._(challenge: challenge);
+
+  bool get requiresTwoFactor => challenge != null;
+}
+
 class ConsoleCredentials {
   final String socket;
   final String token;
@@ -60,30 +97,63 @@ class ApiService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-  static Future<LoginResult> login(
+  static Future<LoginAttempt> login(
     String email,
     String password, {
+    String? twoFactorCode,
+    String? challengeToken,
+    bool resend = false,
     http.Client? client,
   }) async {
     final requestClient = client ?? http.Client();
     try {
       final response = await requestClient.post(
         _uri('api/mobile-auth.php'),
-        headers: _headers(),
-        body: jsonEncode({'email': email, 'password': password}),
+        headers: _headers(challengeToken),
+        body: jsonEncode({
+          if (challengeToken == null) 'email': email,
+          if (challengeToken == null) 'password': password,
+          if (twoFactorCode != null) 'two_factor_code': twoFactorCode,
+          if (resend) 'action': 'resend',
+        }),
       );
 
+      final data = _decodeObject(response);
+      if (data['two_factor_required'] == true) {
+        var challenge = TwoFactorChallenge.fromJson(data);
+        if (challenge.token.isEmpty && challengeToken != null) {
+          challenge = TwoFactorChallenge(
+            token: challengeToken,
+            method: challenge.method,
+            expiresIn: challenge.expiresIn,
+            attemptsRemaining: challenge.attemptsRemaining,
+          );
+        }
+        if (challenge.token.isEmpty) {
+          throw Exception('Two-factor authentication session could not be started.');
+        }
+        return LoginAttempt.twoFactor(challenge);
+      }
       _ensureSuccess(response);
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return LoginResult(
+      return LoginAttempt.authenticated(LoginResult(
         token: data['token']?.toString() ?? '',
         user: User.fromJson(data['user'] as Map<String, dynamic>),
-      );
+      ));
     } finally {
       if (client == null) {
         requestClient.close();
       }
     }
+  }
+
+  static Map<String, dynamic> _decodeObject(http.Response response) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {
+      // _ensureSuccess will create a useful error for malformed responses.
+    }
+    return <String, dynamic>{};
   }
 
   static Future<User> getCurrentUser(String token) async {

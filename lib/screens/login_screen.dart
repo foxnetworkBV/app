@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../services/session_service.dart';
 import '../theme/app_theme.dart';
 
@@ -13,8 +14,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _twoFactorController = TextEditingController();
   bool loading = false;
   String? error;
+  TwoFactorChallenge? twoFactorChallenge;
 
   Future<void> _signIn() async {
     setState(() {
@@ -23,10 +26,75 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await widget.session.signIn(
+      final challenge = await widget.session.signIn(
         _emailController.text.trim(),
         _passwordController.text,
       );
+      if (mounted && challenge != null) {
+        setState(() {
+          loading = false;
+          twoFactorChallenge = challenge;
+        });
+      }
+    } catch (exception) {
+      if (mounted) {
+        setState(() {
+          loading = false;
+          error = exception.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    }
+  }
+
+  Future<void> _verifyTwoFactor() async {
+    final challenge = twoFactorChallenge;
+    if (challenge == null) return;
+    setState(() {
+      loading = true;
+      error = null;
+    });
+    try {
+      final nextChallenge = await widget.session.verifyTwoFactor(
+        _emailController.text.trim(),
+        _passwordController.text,
+        _twoFactorController.text.trim(),
+        challenge.token,
+      );
+      if (mounted && nextChallenge != null) {
+        setState(() {
+          loading = false;
+          twoFactorChallenge = nextChallenge;
+        });
+      }
+    } catch (exception) {
+      if (mounted) {
+        setState(() {
+          loading = false;
+          error = exception.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    }
+  }
+
+  Future<void> _resendTwoFactor() async {
+    final challenge = twoFactorChallenge;
+    if (challenge == null) return;
+    setState(() {
+      loading = true;
+      error = null;
+    });
+    try {
+      final nextChallenge = await widget.session.resendTwoFactor(
+        _emailController.text.trim(),
+        _passwordController.text,
+        challenge.token,
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+          twoFactorChallenge = nextChallenge;
+        });
+      }
     } catch (exception) {
       if (mounted) {
         setState(() {
@@ -41,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _twoFactorController.dispose();
     super.dispose();
   }
 
@@ -88,18 +157,51 @@ class _LoginScreenState extends State<LoginScreen> {
                               Container(width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(13)), child: Text(error!, style: TextStyle(color: Colors.red.shade800), textAlign: TextAlign.center)),
                             ],
                             const SizedBox(height: 22),
-                            TextField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(labelText: 'Email address'),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _passwordController,
-                              obscureText: true,
-                              decoration: const InputDecoration(labelText: 'Password'),
-                              onSubmitted: (_) => _signIn(),
-                            ),
+                            if (twoFactorChallenge == null) ...[
+                              TextField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: const InputDecoration(labelText: 'Email address'),
+                              ),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: const InputDecoration(labelText: 'Password'),
+                                onSubmitted: (_) => _signIn(),
+                              ),
+                            ] else ...[
+                              Text(
+                                'Two-factor authentication',
+                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _twoFactorHint(twoFactorChallenge!),
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: _twoFactorController,
+                                autofocus: true,
+                                textInputAction: TextInputAction.done,
+                                decoration: const InputDecoration(labelText: 'Verification or recovery code'),
+                                onSubmitted: (_) => _verifyTwoFactor(),
+                              ),
+                              if (twoFactorChallenge!.method == 'sms' || twoFactorChallenge!.method == 'whatsapp')
+                                TextButton(onPressed: loading ? null : _resendTwoFactor, child: const Text('Resend code')),
+                              TextButton(
+                                onPressed: loading
+                                    ? null
+                                    : () => setState(() {
+                                          twoFactorChallenge = null;
+                                          _twoFactorController.clear();
+                                          error = null;
+                                        }),
+                                child: const Text('Use a different account'),
+                              ),
+                            ],
                             const SizedBox(height: 20),
                             SizedBox(
                               width: double.infinity,
@@ -107,11 +209,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: BoxDecoration(gradient: FoxColors.primaryGradient, borderRadius: BorderRadius.circular(15), boxShadow: const [BoxShadow(color: Color(0x40EA5411), blurRadius: 18, offset: Offset(0, 8))]),
                                 child: FilledButton.icon(
                                   style: FilledButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent),
-                                  onPressed: loading ? null : _signIn,
+                                  onPressed: loading
+                                      ? null
+                                      : (twoFactorChallenge == null ? _signIn : _verifyTwoFactor),
                                   icon: loading
                                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                       : const Icon(Icons.login_rounded),
-                                  label: Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Text(loading ? 'Signing in…' : 'Sign in')),
+                                  label: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    child: Text(loading
+                                        ? 'Signing in…'
+                                        : twoFactorChallenge == null
+                                            ? 'Sign in'
+                                            : 'Verify code'),
+                                  ),
                                 ),
                               ),
                             ),
@@ -129,5 +240,16 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
+  }
+
+  String _twoFactorHint(TwoFactorChallenge challenge) {
+    switch (challenge.method) {
+      case 'sms':
+        return 'Enter the code sent to your phone, or use a recovery code.';
+      case 'whatsapp':
+        return 'Enter the code sent through WhatsApp, or use a recovery code.';
+      default:
+        return 'Enter the code from your authenticator app, or use a recovery code.';
+    }
   }
 }

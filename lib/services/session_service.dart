@@ -40,14 +40,57 @@ class SessionService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signIn(String email, String password) async {
-    final result = await ApiService.login(email, password);
+  Future<TwoFactorChallenge?> signIn(String email, String password) async {
+    final attempt = await ApiService.login(email, password);
+    if (attempt.requiresTwoFactor) return attempt.challenge;
+    final result = attempt.result!;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', result.token);
     _token = result.token;
     user = result.user;
     isAuthenticated = true;
     notifyListeners();
+    return null;
+  }
+
+  Future<TwoFactorChallenge?> verifyTwoFactor(
+    String email,
+    String password,
+    String code,
+    String challengeToken,
+  ) async {
+    final attempt = await ApiService.login(
+      email,
+      password,
+      twoFactorCode: code,
+      challengeToken: challengeToken,
+    );
+    if (attempt.requiresTwoFactor) return attempt.challenge;
+    final result = attempt.result!;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', result.token);
+    _token = result.token;
+    user = result.user;
+    isAuthenticated = true;
+    notifyListeners();
+    return null;
+  }
+
+  Future<TwoFactorChallenge> resendTwoFactor(
+    String email,
+    String password,
+    String challengeToken,
+  ) async {
+    final attempt = await ApiService.login(
+      email,
+      password,
+      challengeToken: challengeToken,
+      resend: true,
+    );
+    if (attempt.challenge == null) {
+      throw Exception('Could not resend the verification code.');
+    }
+    return attempt.challenge!;
   }
 
   Future<List<CustomerService>> getServices() async {
