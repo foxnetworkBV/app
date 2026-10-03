@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/api_config.dart';
 import '../models/models.dart';
 import 'server_console_screen.dart';
 import '../services/session_service.dart';
@@ -30,6 +32,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   @override
   void initState() {
     super.initState();
+    if (!widget.service.canControl) {
+      loadingResources = false;
+      return;
+    }
     _loadResources();
     timer = Timer.periodic(const Duration(seconds: 10), (_) => _loadResources(silent: true));
   }
@@ -41,6 +47,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   }
 
   Future<void> _loadResources({bool silent = false}) async {
+    if (!widget.service.canControl) return;
     if (!silent && mounted) setState(() => loadingResources = true);
     try {
       final value = await widget.session.getServerResources(widget.service.id);
@@ -121,6 +128,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     );
   }
 
+  Future<void> _openPortal() async {
+    // Use our trusted portal origin, rather than arbitrary server response URLs.
+    final uri = Uri.parse('${ApiConfig.customerPortalUrl}/services/${widget.service.id}');
+    try {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+    } catch (_) { /* Show a readable error below. */ }
+    if (mounted) setState(() => error = 'Could not open the customer portal.');
+  }
+
   String _title(String value) => value.isEmpty ? value : '${value[0].toUpperCase()}${value.substring(1)}';
   String _bytes(int bytes) {
     if (bytes >= 1073741824) return '${(bytes / 1073741824).toStringAsFixed(2)} GB';
@@ -141,11 +157,12 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     final service = widget.service;
     final state = resources?.state ?? service.status;
     final online = state.toLowerCase() == 'running' || state.toLowerCase() == 'online';
+    final healthy = online || (!service.canControl && state.toLowerCase() == 'active');
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Service'),
-        actions: [IconButton(onPressed: () => _loadResources(), icon: const Icon(Icons.refresh_rounded))],
+        actions: [if (service.canControl) IconButton(onPressed: () => _loadResources(), icon: const Icon(Icons.refresh_rounded))],
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
@@ -155,20 +172,24 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           Text(service.name, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(children: [
-            Icon(online ? Icons.check_circle : Icons.cancel, color: online ? Colors.green : Colors.orange),
+            Icon(healthy ? Icons.check_circle : Icons.info_outline, color: healthy ? Colors.green : Colors.orange),
             const SizedBox(width: 8),
             Text(_title(state)),
           ]),
           const SizedBox(height: 16),
-          FilledButton.icon(
+          if (service.canControl) FilledButton.icon(
             onPressed: _openConsole,
             icon: const Icon(Icons.terminal_rounded),
             label: const Text('Open console'),
           ),
+          OutlinedButton.icon(onPressed: _openPortal, icon: const Icon(Icons.open_in_new), label: const Text('Manage in customer portal')),
           const SizedBox(height: 24),
+          _InfoRow(label: 'Category', value: service.category),
+          const SizedBox(height: 10),
           _InfoRow(label: 'Renewal', value: service.renewalDate.isEmpty ? 'No expiry' : AppFormatters.dateTime(service.renewalDate)),
           const SizedBox(height: 10),
-          _InfoRow(label: 'Price', value: 'EUR ${service.price.toStringAsFixed(2)}'),
+          _InfoRow(label: 'Price', value: '${service.currency} ${service.price.toStringAsFixed(2)}'),
+          if (service.canControl) ...[
           const SizedBox(height: 24),
           Text('Live resources', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
@@ -198,6 +219,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               _PowerButton(action: 'kill', icon: Icons.power_settings_new, activeAction: activeAction, enabled: online, onPressed: _power),
             ],
           ),
+          ],
           if (message != null) ...[
             const SizedBox(height: 16),
             Text(message!, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),

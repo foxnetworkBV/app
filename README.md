@@ -1,172 +1,50 @@
-# FoxNetwork Customer App
+# FoxNetwork customer app
 
-Flutter customer app for FoxNetwork.
+Native Flutter customer app for the Paymenter installation at
+https://client.foxnetwork.be. Build from **this repository root**; the nested
+`foxnetwork_app/` directory is an older copy and is not used by the root release
+workflow.
 
-## Works on Windows
+## Paymenter setup required
 
-You can open and develop this project in:
+Install the integration in [paymenter-mobile](paymenter-mobile/README.md) on the
+Paymenter server before using the app. It provides customer-scoped services,
+invoices, support tickets, logout, and optional Pterodactyl controls.
 
-- Visual Studio Code
-- Android Studio
+The app signs in through Paymenter's system-browser OAuth flow with PKCE and a
+public client. Paymenter handles passwords and 2FA; access and refresh tokens use
+platform secure storage. The retired API server and `mobile-*.php` endpoints are
+not used by the root app.
 
-You can test it on:
-
-- Android
-- Windows
-- Chrome
-
-The same project can later be compiled for iPhone using a Mac with Xcode.
-
-## Included
-
-- Login screen
-- Demo login
-- Dashboard
-- Hosting services
-- Start, stop and restart controls
-- Billing and invoices
-- Support tickets
-- Customer account
-- FoxNetwork dark theme
-- API client
-- Secure-enough local token storage for development
-- Demo mode
-
-## Install Flutter on Windows
-
-1. Download Flutter SDK.
-2. Extract it to `C:\src\flutter`.
-3. Add `C:\src\flutter\bin` to PATH.
-4. Install Visual Studio Code.
-5. Install the Flutter and Dart extensions.
-6. Open a terminal and run:
-
-```powershell
-flutter doctor
-```
-
-## Open this project
-
-```powershell
-cd FoxNetworkFlutterApp
-flutter pub get
-flutter run -d chrome
-```
-
-For Android:
-
-```powershell
-flutter run
-```
-
-## API configuration
-
-Open:
-
-```text
-lib/config/api_config.dart
-```
-
-Change:
-
-```dart
-static const String baseUrl = 'https://api.foxnetwork.be';
-```
-
-Set demo mode to false when your API is ready:
-
-```dart
-static const bool demoMode = false;
-```
-
-## Expected API endpoints
-
-- POST `/api/login`
-- GET `/api/me`
-- GET `/api/services`
-- POST `/api/services/{id}/power`
-- GET `/api/invoices`
-- GET `/api/tickets`
-- POST `/api/tickets`
-- POST `/api/logout`
-
-Login response:
-
-```json
-{
-  "token": "api-token",
-  "user": {
-    "id": 1,
-    "name": "Louis Beke",
-    "email": "louis@foxnetwork.be"
-  }
-}
-```
-
-
-## Real Paymenter login
-
-The app now uses Paymenter OAuth. Set the backend URL in:
-
-```text
-lib/config/api_config.dart
-```
-
-### Generate native Flutter folders
-
-This ZIP contains the application source. Inside the project folder run:
-
-```powershell
-flutter create .
-flutter pub get
-```
-
-### Android callback
-
-After `flutter create .`, open:
-
-```text
-android/app/src/main/AndroidManifest.xml
-```
-
-Inside the main `<activity>` add:
-
-```xml
-<intent-filter>
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data
-        android:scheme="foxnetwork"
-        android:host="oauth"
-        android:path="/callback" />
-</intent-filter>
-```
-
-### iOS callback
-
-On a Mac, after generating the iOS folder, add this inside the main `<dict>` in:
-
-```text
-ios/Runner/Info.plist
-```
-
-```xml
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>foxnetwork</string>
-        </array>
-    </dict>
-</array>
-```
-
-The Paymenter OAuth redirect must be exactly:
+The callback registered in Passport must be exactly:
 
 ```text
 foxnetwork://oauth/callback
 ```
+
+Configure the public client ID on the Paymenter server, as described in the
+installation guide. The app reads it from `/api/foxnetwork/config`. No client
+secret or admin API token belongs in the app.
+
+## Develop and test
+
+```sh
+flutter pub get
+flutter analyze lib test
+flutter test
+flutter run
+```
+
+Native authentication targets Android (API 24+) and iOS (15+). Web and Windows
+builds offer a browser portal link; their native OAuth flows are not implemented.
+Building iOS requires macOS and Xcode. Android and iOS callback configuration and
+iOS Keychain entitlements are included.
+
+Services, invoices, ticket lists/details and ticket creation stay native.
+Payments and ticket replies open the authenticated Paymenter website. Server
+resource usage, console and power controls become available for active services
+when the optional Pterodactyl configuration is installed.
+
+Local tests use mocked HTTP and authentication plugins. Complete the server
+feature tests and real-device login checks in the installation guide before a
+release. The repository does not include access to the live Paymenter server.

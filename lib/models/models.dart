@@ -26,6 +26,10 @@ class CustomerService {
   final String hostname;
   final String renewalDate;
   final double price;
+  final String currency;
+  final bool canControl;
+  final String webUrl;
+  final String category;
 
   const CustomerService({
     required this.id,
@@ -35,6 +39,10 @@ class CustomerService {
     required this.hostname,
     required this.renewalDate,
     required this.price,
+    this.currency = 'EUR',
+    this.canControl = false,
+    this.webUrl = '',
+    this.category = 'Other',
   });
 
   bool get isOnline => status.toLowerCase() == 'online';
@@ -55,7 +63,13 @@ class CustomerService {
       status: (json['status'] ?? 'Unknown').toString(),
       hostname: (json['hostname'] ?? json['slug'] ?? '').toString(),
       renewalDate: _renewal(json),
-      price: (json['price'] as num?)?.toDouble() ?? 0,
+      price: double.tryParse('${json['price'] ?? 0}') ?? 0,
+      currency: '${json['currency'] ?? 'EUR'}',
+      canControl: json['can_control'] == true,
+      webUrl: '${json['web_url'] ?? ''}',
+      category: '${json['category'] ?? ''}'.trim().isEmpty
+          ? 'Other'
+          : '${json['category']}'.trim(),
     );
   }
 }

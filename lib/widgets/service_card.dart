@@ -6,7 +6,16 @@ import 'status_badge.dart';
 class ServiceCard extends StatelessWidget {
   final CustomerService service;
   const ServiceCard({super.key, required this.service});
-  IconData get _icon { final p=service.product.toLowerCase(); if(p.contains('minecraft')) return Icons.view_in_ar_rounded; if(p.contains('discord')) return Icons.forum_rounded; if(p.contains('web')) return Icons.language_rounded; return Icons.dns_rounded; }
+  IconData get _icon {
+    final product = '${service.category} ${service.product}'.toLowerCase();
+    if (product.contains('web')) return Icons.language_rounded;
+    if (product.contains('domain') || product.contains('domein')) return Icons.link_rounded;
+    if (product.contains('mail')) return Icons.mail_outline_rounded;
+    if (product.contains('minecraft') || product.contains('game')) return Icons.sports_esports_rounded;
+    if (product.contains('discord')) return Icons.forum_rounded;
+    if (product.contains('vps') || product.contains('cloud')) return Icons.cloud_outlined;
+    return Icons.dns_rounded;
+  }
   @override Widget build(BuildContext context) { final theme=Theme.of(context); final scheme=theme.colorScheme; return Container(
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(color: scheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: scheme.outlineVariant), boxShadow: theme.brightness==Brightness.light ? const [BoxShadow(color: Color(0x090F1A30), blurRadius: 16, offset: Offset(0, 7))] : const []),
@@ -16,6 +25,7 @@ class ServiceCard extends StatelessWidget {
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(service.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w800)),
         const SizedBox(height: 3), Text(service.product, maxLines: 1, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 3), Text(service.category, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
         if(service.hostname.isNotEmpty)...[const SizedBox(height: 5), Text(service.hostname, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall)],
       ])),
       const SizedBox(width: 8), Column(crossAxisAlignment: CrossAxisAlignment.end, children: [StatusBadge(service.status), const SizedBox(height: 9), Icon(Icons.chevron_right_rounded, color: theme.textTheme.bodyMedium?.color)]),

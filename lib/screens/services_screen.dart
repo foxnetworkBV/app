@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/api_config.dart';
 import '../models/models.dart';
 import '../services/session_service.dart';
 import '../widgets/service_card.dart';
@@ -16,19 +18,51 @@ class ServicesScreen extends StatefulWidget {
   State<ServicesScreen> createState() => _ServicesScreenState();
 }
 
-class _ServicesScreenState extends State<ServicesScreen> {
+class _ServicesScreenState extends State<ServicesScreen> with WidgetsBindingObserver {
   late Future<List<CustomerService>> _services;
+  String? _category;
+  bool _returningFromStore = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _services = widget.session.getServices();
   }
 
   Future<void> _reload() async {
     final future = widget.session.getServices();
     setState(() => _services = future);
-    await future;
+    try {
+      await future;
+    } catch (_) {
+      // The FutureBuilder displays the request error and a retry button.
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _returningFromStore) {
+      _returningFromStore = false;
+      _reload();
+    }
+  }
+
+  Future<void> _addService() async {
+    _returningFromStore = true;
+    try {
+      if (await launchUrl(Uri.parse(ApiConfig.customerPortalUrl), mode: LaunchMode.externalApplication)) return;
+    } catch (_) {
+      // Show the same error for unsupported platforms and failed launches.
+    }
+    _returningFromStore = false;
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open the customer portal.')));
   }
 
   @override
@@ -43,6 +77,16 @@ class _ServicesScreenState extends State<ServicesScreen> {
             tooltip: 'Refresh',
           ),
         ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+          child: FilledButton.icon(
+            onPressed: _addService,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Order a new service'),
+          ),
+        ),
       ),
       body: FutureBuilder<List<CustomerService>>(
         future: _services,
@@ -92,15 +136,34 @@ class _ServicesScreenState extends State<ServicesScreen> {
             );
           }
 
-          return RefreshIndicator(
+          final categories = services.map((service) => service.category).toSet().toList()..sort();
+          final selected = categories.contains(_category) ? _category : null;
+          final visible = selected == null ? services : services.where((service) => service.category == selected).toList();
+          return Column(children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+              child: Row(children: [
+                ChoiceChip(label: Text('All (${services.length})'), selected: selected == null, onSelected: (_) => setState(() => _category = null)),
+                for (final category in categories) ...[
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text('$category (${services.where((service) => service.category == category).length})'),
+                    selected: selected == category,
+                    onSelected: (_) => setState(() => _category = category),
+                  ),
+                ],
+              ]),
+            ),
+            Expanded(child: RefreshIndicator(
             onRefresh: _reload,
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(18),
-              itemCount: services.length,
+              itemCount: visible.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final service = services[index];
+                final service = visible[index];
                 return InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onTap: () {
@@ -114,7 +177,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 );
               },
             ),
-          );
+          )),
+          ]);
         },
       ),
     );
