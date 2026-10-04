@@ -1,0 +1,9 @@
+{
+  "id" : "fbaaf628-72c7-465b-836f-4078c2a79aba",
+  "targets" : [
+    {
+      "id" : "208C8236-1F6E-499F-9AF5-0AAEE19D23C9",
+      "name" : "FoxNetwork"
+    }
+  ]
+}
